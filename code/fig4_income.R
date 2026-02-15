@@ -1,29 +1,11 @@
-
-pacman::p_load(tidyverse, lubridate, sf, ggplot2, mapview, patchwork, 
-               ggthemes, ggspatial, ggmap, fixest, broom, quantreg, knitr, 
-               extrafont, latex2exp, car)
-
-rm(list=ls())
+rm(list=ls_extra())
 gc()
-
-if (Sys.getenv("USER") == "yixinsun1") {
-  ddir <- file.path("/Users/yixinsun1/Dropbox/Research/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm")
-} else if (Sys.getenv("USER") == "jeannesorin") {
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm")
-  ddir <- file.path("/Users/jeannesorin/Dropbox/pollution_experience/fullscale")
-} else if (Sys.getenv("USER") == "yixin.sun") {
-  ddir <- file.path("/Users/yixin.sun/Documents/Educational/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm")
-}
-
-source(file.path(gdir, "code/analysis/utils.R"))
 
 # ===========================================================
 # read in data
 # ===========================================================
 pm <- 
-  read_rds(file.path(ddir, "generated_data/pm/df_reg.rds"))  %>%
+  read_rds(file.path(ddir, "df_reg.rds"))  %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"), 
          pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor), 
          spike = pm25_indoor > 125.5, 
@@ -32,7 +14,7 @@ pm <-
 
 # read in survey data
 survey <- 
-  file.path(ddir, "generated_data/survey/survey_control.RDS") %>%
+  file.path(ddir, "df_survey.rds") %>%
   read_rds() %>%
   mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline, 
@@ -45,7 +27,7 @@ survey <-
 # Decomposition of indoor pm for each income quartile
 # created in fig3_decomposition
 p_decomp <- 
-  read_rds(file.path(ddir, "generated_data/plot_decomp_by_income.rds")) +
+  read_rds(file.path(ddir, "plot_decomp_by_income.rds")) +
   geom_text(aes(x = 1, y = 10, label = "Smoked\n(24 Hours)"), size = 1.3, color = "white") +
   geom_text(aes(x = 1, y = 24, label = "Other\n(hyperlocal)"), size = 1.3, color = "white") +
   geom_text(aes(x = 1, y = 42, label = "Outdoor\nAmbient" ), size = 1.3, color = "white") + 
@@ -155,6 +137,6 @@ p_top <- (p_decomp + ggtitle("a.")) + p_hyperlocal_income +
   plot_layout(widths = c(.75, 1))
 
 p_top / p_char_income 
-ggsave(file.path(gdir, "output/infiltration/fig4_pm_income.png"), 
+ggsave(file.path(gdir, "output/figures/fig4_pm_income.png"), 
        width = 15, height= 10, bg = "transparent", units = "cm")
 

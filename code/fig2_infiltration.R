@@ -1,19 +1,7 @@
-pacman::p_load(tidyverse, lubridate, sf, ggplot2, mapview, patchwork, ggthemes, 
-               ggspatial, ggmap, fixest, broom, knitr, scales, kableExtra, car, latex2exp)
 
-rm(list=ls())
+rm(list=ls_extra())
 gc()
 
-if(Sys.getenv("USER") == "yixinsun1"){
-  ddir <- file.path("/Users/yixinsun1/Dropbox/Research/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm")
-} else if(Sys.getenv("USER") == "jeannesorin"){
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm")
-  ddir <- file.path("/Users/jeannesorin/Dropbox/pollution_experience/fullscale")
-} else if(Sys.getenv("USER") == "yixin.sun"){
-  ddir <- file.path("/Users/yixin.sun/Documents/Educational/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm")
-}
 
 
 theme_inf <- 
@@ -39,7 +27,7 @@ theme_set(theme_inf)
 
 # read in survey data
 survey <- 
-  read_rds(file.path(ddir, "generated_data/survey/survey_control.RDS"))  %>%
+  read_rds(file.path(ddir, "df_survey.RDS"))  %>%
   mutate(income_high = hh_income >= 4, 
          house_size = case_when(housing_room_number < 3 ~ "Small", 
                                 housing_room_number < 6 ~ "Medium", 
@@ -48,7 +36,7 @@ survey <-
 
 # read in pm data
 pm <- 
-  read_rds(file.path(ddir, "generated_data/pm/df_reg.rds"))  %>%
+  read_rds(file.path(ddir, "df_reg.rds"))  %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"), 
          pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor), 
          splines = Hmisc::cut2(pm25_outdoor3, cuts = c(30, 40, 50)), 
@@ -140,7 +128,7 @@ regs_het <-
 # use whatsapp survey on opening of windows
 # read in whatsapp data and merge in with pm_data
 whatsapp_open <- 
-  read_rds(file.path(ddir, "generated_data/survey/df_whatsapp.rds")) %>%
+  read_rds(file.path(ddir, "df_whatsapp.rds")) %>%
   filter(!is.na(open_window)) %>%
   dplyr::select(respondent_id, date_hour, type, contains("open")) %>%
   mutate(open_room_behavior = open_room == "Ya" | open_door == "Ya", 
@@ -282,5 +270,5 @@ p_top <- (p_inf  + p_het) + plot_layout(width = c(0.7, 2))
   theme(axis.ticks = element_line(size = .1), 
         plot.tag = element_text(size = 6, face = "bold"))
 
-ggsave(file.path(gdir, "output/infiltration/fig2_infiltation.png"), width = 15, height= 10, bg = "transparent", units = "cm")
+ggsave(file.path(gdir, "output/figures/fig2_infiltation.png"), width = 15, height= 10, bg = "transparent", units = "cm")
 

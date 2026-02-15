@@ -1,23 +1,10 @@
-pacman::p_load(tidyverse, lubridate, sf, ggplot2, mapview, patchwork, ggthemes, Hmisc,
-               ggspatial, ggmap, fixest, broom, knitr, scales, kableExtra, car, latex2exp)
 
-rm(list=ls())
+rm(list=ls_extra())
 gc()
-
-if(Sys.getenv("USER") == "yixinsun1"){
-  ddir <- file.path("/Users/yixinsun1/Dropbox/Research/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm")
-} else if(Sys.getenv("USER") == "jeannesorin"){
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm")
-  ddir <- file.path("/Users/jeannesorin/Dropbox/pollution_experience/fullscale")
-} else if(Sys.getenv("USER") == "yixin.sun"){
-  ddir <- file.path("/Users/yixin.sun/Documents/Educational/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm")
-}
 
 # read in survey data
 survey <- 
-  read_rds(file.path(ddir, "generated_data/survey/survey_control.RDS"))  %>%
+  read_rds(file.path(ddir, "df_survey.rds"))  %>%
   mutate(income_high = hh_income >= 4, 
          house_size = case_when(housing_room_number < 3 ~ "Small", 
                                 housing_room_number < 6 ~ "Medium", 
@@ -25,22 +12,7 @@ survey <-
          house_size = factor(house_size, levels = c("Small", "Medium", "Big")))
 
 # read in pm data
-pm <- 
-  read_rds(file.path(ddir, "generated_data/pm/df_reg.rds"))  %>%
-
-  # filter to data after hardware is installed
-  filter(date >= date_first) %>%
-
-  # filter to data before last day of data collection
-  group_by(respondent_id) %>%
-  mutate(date_last = date[!is.na(pm25_indoor)]) 
-
-  # bonus outcome variables 
-  mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"), 
-         pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor), 
-         splines = Hmisc::cut2(pm25_outdoor3, cuts = c(30, 40, 50)), 
-         income_high = hh_income >= 4, 
-         spike = pm25_indoor > 100) 
+pm <- read_rds(file.path(ddir, "df_reg.rds"))  
 
 rp_to_usd <- 0.000062
 
@@ -89,7 +61,7 @@ n_all <-
 
 # add in comparison to jakarta-wide population-----------------------------------
 susenas <- 
-  file.path(ddir, "generated_data/Susenas23_DKI.dta") %>%
+  file.path(ddir, "Susenas23_DKI.dta") %>%
   haven::read_dta() 
 
 susenas_hoh <- 
@@ -165,7 +137,7 @@ table_out %>%
   # add_header_above(c("", paste0("(", 1:(ncol(table_out) -1 ), ")")), 
   #                 line = FALSE) %>%
   row_spec(nrow(table_out), hline_after = TRUE) %>%  # Adds a line above the last row
-  writeLines(file.path(gdir, "output/desc/covariates.tex"))
+  writeLines(file.path(gdir, "output/tables/covariates.tex"))
 
 
 # =========================================================================
@@ -179,7 +151,7 @@ hh_pm_indoor <-
   summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE))
 
 hh_mindist <- 
-  read_csv(file.path(ddir, "generated_data/pm/hh_sensor_dist.csv")) %>%
+  read_csv(file.path(ddir, "hh_sensor_dist.csv")) %>%
   group_by(respondent_id) %>%
   arrange(distance) %>%
   filter(row_number() == 1) %>%
@@ -205,7 +177,7 @@ feols(as.formula(paste("sensor_mindist ~", xvars)), data = hh_mindist)  %>%
                   sensor_mindist = "Distance to Outdoor Sensor (meters)"), 
          drop = "Constant", fitstat = c("my", "n"),
          digits = "r2", replace = TRUE,
-         tex = TRUE, file = file.path(gdir, "output/desc/sensor_selection.tex"))
+         tex = TRUE, file = file.path(gdir, "output/tables/sensor_selection.tex"))
 
 
 
@@ -276,7 +248,7 @@ p_income <-
         legend.key.size = unit(0.05, "cm")) + 
   xlab(expression(PM[2.5] ~ (mu * g/m^3))); p_income
 
-ggsave(file.path(gdir, "output/desc/pm_income_robustness.png"), 
+ggsave(file.path(gdir, "output/figures/pm_income_robustness.png"), 
        width = 14, height= 6, bg = "transparent", units = "cm")
 
 # ==================================================
@@ -333,23 +305,21 @@ p_lags <-
         plot.background = element_rect(fill = "transparent", colour = NA)) +
   geom_text(aes(x = 8, y = .5, label = paste0("Inf. Rate = ", sum_beta)), size =2) ; p_lags
 
-ggsave(file.path(gdir, "output/infiltration/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm")
+ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm")
 
 
 # =========================================================================
 # Infiltration at different levels of aggregation 
 # =========================================================================
 # show main results
-
-
 reg_main <- 
   paste0("pm25_indoor~pm25_outdoor3+temp_outdoor3 + humidity_outdoor3 |", fes) %>%
-  map(~feols(as.formula(.x), data = pm_agg, cluster= ~respondent_id+date_hour)) %>%
+  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour)) %>%
   append(list(feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id^hour + week, 
-                    data = filter(pm_agg, sensor_mindist < 1000), cluster = ~respondent_id+date_hour)) )
+                    data = filter(pm, sensor_mindist < 1000), cluster = ~respondent_id+date_hour)) )
 
 tidy_main <- 
-  map2_df(reg_8hours,  c("Hour +\nWeek FE", "HH + Hour\n+ Week FE", "HH^Hour\n+ Week FE", "<1km to\nOutdoor\nSensor"), 
+  map2_df(reg_main,  c("Hour +\nWeek FE", "HH + Hour\n+ Week FE", "HH^Hour\n+ Week FE", "<1km to\nOutdoor\nSensor"), 
     ~tidy_up(.x) %>% mutate(reg = .y, type = "Main, 1 hour"))
 
 # aggregate to 8 hour chunks
@@ -437,7 +407,7 @@ bind_rows(tidy_main, tidy_8hours, tidy_24hours) %>%
         strip.text = element_text(size = 7), 
         strip.background = element_blank(), 
         )
-ggsave(file.path(gdir, "output/infiltration/inf_aggregation.png"), width = 14, height= 6, bg = "transparent", units = "cm")
+ggsave(file.path(gdir, "output/figures/inf_aggregation.png"), width = 14, height= 6, bg = "transparent", units = "cm")
 # now just with customers for whom we have a lot of data for
 # actually we can't do this - because missingness is completely correlated with income, and
 # high income households have low infiltration
@@ -457,8 +427,98 @@ etable(reg_outdoor_burning, reg_outdoor_burning_2k,
         dict =c("trash_burning_1week_baseline1or2times" = "Waste Burning (1-2/week)", 
                 "trash_burning_1week_baseline3ormoretimes" = "Waste Burning (2+/week)", 
                 "temp_outdoor3" = "Outdoor Temperature",
-                "humidity_outdoor3" = "Outdoor Humidity", 
+                "humidity_outdoor3" = "Outdoor Humidity",
+                pm25_outdoor3 = "Outdoor PM2.5", 
                 week = "Week FE",
                 hour = "Hour FE"), 
-      digits = 3, tex = TRUE, replace = TRUE, 
-      file = file.path(gdir, "output/desc/reg_outdoor_burning.tex"))
+      headers = c("Closest 3 Sensors", "HH Within 2km of Outdoor Sensor"),
+      digits = 3, tex = TRUE, replace = TRUE,
+      file = file.path(gdir, "output/tables/reg_outdoor_burning.tex"))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ------- Density of distance to roads --------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pm %>%
+  dplyr::distinct(respondent_id, dist_motorway, dist_primary, dist_secondary, 
+        dist_tertiary) %>%
+  pivot_longer(cols = starts_with("dist"), names_to = "road_type", values_to = "distance")  %>%
+  mutate(Type = str_to_title(str_remove(road_type, "dist_"))) %>%
+  ggplot(aes(x = distance, color = Type)) +
+  stat_ecdf() + 
+  scale_color_brewer(palette = "Dark2") + 
+  theme_classic() + 
+  theme(legend.position = "bottom", 
+        text = element_text(size = 10)) + 
+  xlab("Distance (meters)")
+ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.png"),  
+    width = 15, height= 10, bg = "transparent", units = "cm")
+
+
+
+# =========================================================================
+# find pairwise correlations between sensors
+# =========================================================================
+df_sensors <- 
+  st_read(file.path(ddir, "sensor_locations/sensor_locations.shp")) %>%
+  filter(n3 == 1, name != "Muara Karang")
+
+# find parwise combination of names of sensors
+pairs <- 
+  combn(df_sensors$name,2) %>% 
+  t() %>%
+  as_tibble() %>%
+  setNames(c("sensor1", "sensor2"))
+
+# find distance between pairs
+pairs_dist <- 
+  pairs %>%
+  left_join(dplyr::select(df_sensors, sensor1 = name, geometry1 = geometry)) %>%
+  left_join(dplyr::select(df_sensors, sensor2 = name, geometry2 = geometry)) %>%
+  mutate(dist = as.numeric(st_distance(geometry1, geometry2, by_element = TRUE)))
+
+# -----------------------------------------------------
+# for each pair, calculate R2 between the sensor data
+# -----------------------------------------------------
+pm_sensors <- 
+  read_rds(file.path(ddir, "pm_outdoor_bysensor.rds")) %>%
+  filter(measure == "pm25") %>%
+  dplyr::select(-measure) %>% 
+  mutate(value = if_else(value <= 1, NA_real_, value)) %>%
+  dplyr::select(sensor_name, date_hour, value)  %>%
+  distinct(sensor_name, date_hour, .keep_all = TRUE)
+
+sensors_r2 <- 
+  pmap(pairs, list) %>%
+  map_dbl(function(x){
+    df_r2 <- 
+      filter(pm_sensors, sensor_name %in% c(x$sensor1, x$sensor2)) %>%
+      mutate(value = log(value)) %>%
+      pivot_wider(id_cols = "date_hour", names_from = "sensor_name", values_from = "value") %>%
+      janitor::clean_names()
+    f <- paste0(colnames(df_r2)[2], "~", colnames(df_r2)[3])
+    
+    r2 <- summary(lm(as.formula(f), df_r2))$r.squared
+  })
+
+pairs_dist <- 
+  pairs_dist %>%
+  mutate(r2 = as.numeric(sensors_r2))
+
+# correlation of log transformations
+# plot correlation between two sensors as a function of the distance between the sensors 
+ggplot(pairs_dist, aes(x = dist / 1000, y = r2)) +
+  #geom_bin2d(bins = 20) +
+  #scale_fill_continuous(type = "viridis") +
+  xlab("pairwise distance (km)") + 
+  ylab(expression(R^2)) + 
+  geom_point(color = "gray40", alpha = .5) + 
+  # geom_smooth(color="black", se = FALSE)  +
+  stat_summary_bin(geom="line", size = 1)+ 
+  theme_linedraw() + 
+  scale_fill_gradient2(high = "darkgreen")  +
+  theme(axis.title.y=element_text(angle=0, vjust = .5), text = element_text(size = 24)) + 
+  ylim(0, 1)
+ggsave(file.path(gdir, "output/figures/sensor_correlations.png"), width = 13, height= 8)
+

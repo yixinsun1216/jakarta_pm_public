@@ -1,26 +1,5 @@
-pacman::p_load(
-  tidyverse,
-  lubridate,
-  fixest,
-  broom,
-  relaimpo,
-  patchwork
-)
-
-rm(list = ls())
+rm(list = ls_extra())
 gc()
-
-if (Sys.getenv("USER") == "yixinsun1") {
-  ddir <- file.path("/Users/yixinsun1/Dropbox/Research/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm")
-} else if (Sys.getenv("USER") == "jeannesorin") {
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm")
-  ddir <- file.path("/Users/jeannesorin/Dropbox/pollution_experience/fullscale")
-} else if (Sys.getenv("USER") == "yixin.sun") {
-  ddir <- file.path("/Users/yixin.sun/Documents/Educational/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm")
-}
-
 
 my_theme <- theme_classic() + 
   theme(panel.grid= element_blank(),
@@ -41,7 +20,7 @@ theme_set(my_theme)
 # -------------------- Read in PM data -------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pm <-
-  read_rds(file.path(ddir, "generated_data/pm/df_reg.rds")) %>%
+  read_rds(file.path(ddir, "df_reg.rds")) %>%
   mutate(
     traffic_hours = hour(date_hour) %in% c(7, 8, 9, 16, 17, 18, 19), 
     cooking_night = hour(date_hour) %in% c(17, 18, 19, 20),
@@ -189,7 +168,7 @@ output %>%
               digits = c(NA, 2, 3, 2, 1, 1), format = "latex", 
               booktabs = TRUE, align = "c") %>%
   kableExtra::kable_styling(full_width = FALSE) %>%
-  writeLines(file.path(gdir, "output/infiltration/mean_contribution_table.tex"))
+  writeLines(file.path(gdir, "output/tables/mean_contribution_table.tex"))
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,7 +229,7 @@ output_spike %>%
               booktabs = TRUE, 
               align = "c") %>%
   kableExtra::kable_styling(full_width = FALSE) %>%
-  writeLines(file.path(gdir, "output/infiltration/spike_contribution_table.tex"))
+  writeLines(file.path(gdir, "output/tables/spike_contribution_table.tex"))
 
 
 
@@ -299,11 +278,8 @@ p_spike <-
 
 p_contributions / p_spike +
   plot_annotation(tag_levels = "a", tag_suffix = ".") 
-ggsave(file.path(gdir, "output/infiltration/fig3_sources.png"), 
+ggsave(file.path(gdir, "output/figures/fig3_sources.png"), 
     width = 10, height= 10, bg = "transparent", units = "cm")
-
-
-
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -383,25 +359,5 @@ p_decomp_income <-
         strip.background = element_blank()); p_decomp_income
 
 # save this as a plot for figure 4, when we discuss income heterogeneity
-write_rds(p_decomp_income, file.path(ddir, "generated_data/plot_decomp_by_income.rds"))
+write_rds(p_decomp_income, file.path(ddir, "plot_decomp_by_income.rds"))
 
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ------- Density of distance to roads --------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-roads <- read_rds(file.path(ddir, "generated_data/survey_control_wroads.RDS")) 
-
-roads %>%
-  dplyr::select(respondent_id, dist_motorway, dist_primary, dist_secondary, 
-        dist_tertiary) %>%
-  pivot_longer(cols = starts_with("dist"), names_to = "road_type", values_to = "distance")  %>%
-  mutate(Type = str_to_title(str_remove(road_type, "dist_"))) %>%
-  ggplot(aes(x = distance, color = Type)) +
-  stat_ecdf() + 
-  scale_color_brewer(palette = "Dark2") + 
-  theme_classic() + 
-  theme(legend.position = "bottom", 
-        text = element_text(size = 10)) + 
-  xlab("Distance (meters)")
-ggsave(file.path(gdir, "output/desc/distance_to_road_ecdf.png"),  
-    width = 15, height= 10, bg = "transparent", units = "cm")
