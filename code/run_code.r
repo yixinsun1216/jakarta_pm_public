@@ -6,7 +6,7 @@ pacman::p_load(
 if(Sys.getenv("USER") == "yixinsun1"){
   gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm_public")
 } else if(Sys.getenv("USER") == "jeannesorin"){
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm_public")
+  gdir <- file.path("/Users/jeannesorin/Dropbox/github/jakarta_pm_public")
 } else if(Sys.getenv("USER") == "yixin.sun"){
   gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm_public")
 }
