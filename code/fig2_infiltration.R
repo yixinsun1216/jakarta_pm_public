@@ -49,7 +49,7 @@ pm <-
 
 
 # ==================================================
-# Panel 3a. main infiltration graph
+# panel 2a. main infiltration graph
 # ==================================================
 # robustness -----------------------------------------------
 reg1 <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | hour + week, 
@@ -93,7 +93,7 @@ p_inf <-
 
 
 # ==================================================
-# 3c. heterogeneity of infiltration rates
+# 2c. heterogeneity of infiltration rates
 # ==================================================
 vars <- c("income_quart", "night", "house_size", "room_ac")
 titles <- c("Income", "Day/Night", "House Size", "AC")
@@ -187,7 +187,7 @@ p_het <-
 
 
 # ==========================================================================
-# 3d. check whether short-term adaptive behaviors are correlated with income
+# 2d. check whether short-term adaptive behaviors are correlated with income
 # ==========================================================================
 tidy_het <- function(r){
   tidy(r, conf.int = TRUE) %>%
