@@ -1,18 +1,21 @@
-\begin{table}
+\begin{table}[H]
 \centering
-\begin{tabular}{cccccc}
+\caption{\label{tab:mean_contrib}\textbf{Table 1: Source Contributions to Mean Indoor PM\textsubscript{2.5}.} Regression estimates, mean values, and mean contributions (\% of indoor PM\textsubscript{2.5} mean) for each pollution source. $R^2$ contributions from LMG variance decomposition.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{cccccc}
 \toprule
 Source & Reg. Estimate & p.value & Mean Value of Source & Mean Contribution & R2 Contribution\\
 \midrule
-Outdoor Ambient & 0.61 & 0.000 & 38.77 & 57\% & 34\%\\
-Smoked (24 Hours) & 21.17 & 0.002 & 0.37 & 19\% & 23\%\\
-Waste Burning (1-2/week) & -2.11 & 0.700 & 0.21 & -1\% & \\
-Waste Burning (2+/week) & 44.59 & 0.189 & 0.11 & 11\% & \\
+Outdoor Ambient & 0.62 & 0.000 & 38.77 & 58\% & 33\%\\
+Smoked (24 Hours) & 21.28 & 0.002 & 0.37 & 19\% & 23\%\\
+Waste Burning (1-2/week) & -2.10 & 0.693 & 0.21 & -1\% & \\
+Waste Burning (2+/week) & 47.67 & 0.172 & 0.11 & 12\% & \\
 Waste Burning &  &  &  &  & 22\%\\
 \addlinespace
-Kitchen source & 0.26 & 0.970 & 0.30 & 0\% & 0\%\\
-Cooking & -2.38 & 0.481 & 0.08 & 0\% & 0\%\\
-Distance to Main Road & 0.00 & 0.725 & 567.08 & 4\% & 0\%\\
+Kitchen source & 0.04 & 0.996 & 0.30 & 0\% & 0\%\\
+Cooking & -2.45 & 0.477 & 0.08 & 0\% & 0\%\\
+Distance to Main Road & 0.00 & 0.687 & 567.08 & 5\% & 0\%\\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
