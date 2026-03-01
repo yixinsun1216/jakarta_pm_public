@@ -1,10 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.1.14)  1 MAR 2026 12:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.1.14)  1 MAR 2026 18:25
 entering extended mode
  restricted \write18 enabled.
- file:line:error style messages enabled.
  %&-line parsing enabled.
-**/Users/yixin.sun/Documents/Educational/jakarta_pm_public/output/all_figures.tex
-(/Users/yixin.sun/Documents/Educational/jakarta_pm_public/output/all_figures.tex
+**all_figures.tex
+(./all_figures.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (/usr/local/texlive/2025basic/texmf-dist/tex/latex/base/article.cls
@@ -23,14 +22,18 @@ File: size12.clo 2024/06/29 v1.4n Standard LaTeX file (size option)
 \abovecaptionskip=\skip49
 \belowcaptionskip=\skip50
 \bibindent=\dimen141
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/geometry/geometry.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2020/01/02 v5.9 Page Geometry
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/keyval.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks17
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/iftex/ifvtex.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/iftex/ifvtex.sty
 Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/iftex/iftex.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2024/12/12 v1.0g TeX engine tests
 ))
 \Gm@cnth=\count270
@@ -45,24 +48,31 @@ Package: iftex 2024/12/12 v1.0g TeX engine tests
 \Gm@layouthoffset=\dimen148
 \Gm@layoutvoffset=\dimen149
 \Gm@dimlist=\toks18
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/graphicx.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/graphics.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/trig.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 106.
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics-def/pdftex.def
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics-def/pdftex.def
 File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
 ))
 \Gin@req@height=\dimen150
 \Gin@req@width=\dimen151
-) (/Users/yixin.sun/Library/texmf/tex/latex/caption/caption.sty
+)
+(/Users/yixin.sun/Library/texmf/tex/latex/caption/caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
- (/Users/yixin.sun/Library/texmf/tex/latex/caption/caption3.sty
+
+(/Users/yixin.sun/Library/texmf/tex/latex/caption/caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
 \caption@tempdima=\dimen152
 \captionmargin=\dimen153
@@ -76,7 +86,8 @@ Package caption Info: Standard document class detected.
 )
 \c@caption@flags=\count273
 \c@continuedfloat=\count274
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/booktabs/booktabs.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \heavyrulewidth=\dimen160
 \lightrulewidth=\dimen161
@@ -95,17 +106,22 @@ Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \@thisruleclass=\count277
 \@lastruleclass=\count278
 \@thisrulewidth=\dimen172
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/float/float.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \c@float@type=\count279
 \float@exts=\toks19
 \float@box=\box52
 \@float@everytoks=\toks20
 \@floatcapt=\box53
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/pdflscape/pdflscape.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/pdflscape/pdflscape.sty
 Package: pdflscape 2022-10-27 v0.13 Display of landscape pages in PDF
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/pdflscape/pdflscape-nometadata.sty
-Package: pdflscape-nometadata 2022-10-28 v0.13 Display of landscape pages in PDF (HO)
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/pdflscape/pdflscape-nometada
+ta.sty
+Package: pdflscape-nometadata 2022-10-28 v0.13 Display of landscape pages in PD
+F (HO)
  (/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/lscape.sty
 Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
 )
@@ -128,19 +144,28 @@ Package: longtable 2024-10-27 v4.22 Multi-page Table package (DPC)
 \c@LT@tables=\count283
 \c@LT@chunks=\count284
 \LT@p@ftn=\toks21
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/hyperref.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/hyperref.sty
 Package: hyperref 2024-11-05 v7.01l Hypertext links for LaTeX
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
 Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.
+sty
 Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/pdfescape/pdfescape.sty
 Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
 Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
-Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO)
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/infwarerr/infwarerr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
 Package pdftexcmds Info: \pdf@primitive is available.
@@ -148,34 +173,45 @@ Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode found.
 )) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hycolor/hycolor.sty
 Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/nameref.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2023-11-26 v2.56 Cross-referencing by name of section
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/refcount/refcount.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/refcount/refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/gettitlestring/gettitlestr
+ing.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/kvoptions/kvoptions.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/kvoptions/kvoptions.sty
 Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
 ))
 \c@section@level=\count285
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/etoolbox/etoolbox.sty
 Package: etoolbox 2025/02/11 v2.5l e-TeX tools for LaTeX (JAW)
 \etb@tempcnta=\count286
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/stringenc/stringenc.sty
-Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO)
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/stringenc/stringenc.sty
+Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
+)
 )
 \@linkdim=\dimen174
 \Hy@linkcounter=\count287
 \Hy@pagecounter=\count288
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/pd1enc.def
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/pd1enc.def
 File: pd1enc.def 2024-11-05 v7.01l Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
-) (/usr/local/texlive/2025basic/texmf-dist/tex/generic/intcalc/intcalc.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/intcalc/intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
 \Hy@SavedSpaceFactor=\count289
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/puenc.def
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/puenc.def
 File: puenc.def 2024-11-05 v7.01l Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
@@ -188,16 +224,20 @@ Package hyperref Info: Backreferencing OFF on input line 4177.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4424.
 \c@Hy@tempcnt=\count290
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/url/url.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 4763.
 \XeTeXLinkMargin=\dimen175
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/bitset/bitset.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
-Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
 ))
 \Fld@menulength=\count291
 \Field@Width=\dimen176
@@ -218,51 +258,80 @@ package with kernel methods
 \c@Hfootnote=\count294
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/hpdftex.def
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/hyperref/hpdftex.def
 File: hpdftex.def 2024-11-05 v7.01l Hyperref driver for pdfTeX
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/base/atveryend-ltx.sty
-Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend package
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/base/atveryend-ltx.sty
+Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend pac
+kage
 with kernel methods
 )
 \Fld@listcount=\count295
 \c@bookmark@seq@number=\count296
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/rerunfilecheck/rerunfilechec
+k.sty
 Package: rerunfilecheck 2022-07-10 v1.10 Rerun checks for auxiliary files (HO)
- (/usr/local/texlive/2025basic/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/generic/uniquecounter/uniquecounte
+r.sty
 Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 )
-Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 285.
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+85.
 )
 \Hy@SectionHShift=\skip55
 ) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2024/02/08 v1.3d Input encoding file
 \inpenc@prehook=\toks22
 \inpenc@posthook=\toks23
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 274.
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/l3backend/l3backend-pdftex.d
+ef
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count297
 \l__pdf_internal_box=\box59
 ) (./all_figures.aux)
 \openout1 = `all_figures.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 15.
-LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -311,11 +380,16 @@ LaTeX Font Info:    ... okay on input line 15.
 \MPnumerator=\count302
 \makeMPintoPDFobject=\count303
 \everyMPtoPDFconversion=\toks25
-) (/usr/local/texlive/2025basic/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+)
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.s
+ty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
-Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
- (/usr/local/texlive/2025basic/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
-File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(/usr/local/texlive/2025basic/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
@@ -325,19 +399,20 @@ Package caption Info: longtable package is loaded.
 Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 15.
- (./all_figures.out) (./all_figures.out)
+Package hyperref Info: Link coloring OFF on input line 16.
+
+(./all_figures.out) (./all_figures.out)
 \@outlinefile=\write3
 \openout3 = `all_figures.out'.
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <20.74> on input line 17.
+(Font)              <20.74> on input line 18.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 17.
+(Font)              <14.4> on input line 18.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 17.
+(Font)              <12> on input line 18.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 17.
+(Font)              <7> on input line 18.
 
 
 LaTeX Warning: No \author given.
@@ -350,127 +425,144 @@ LaTeX Warning: No \author given.
 
 [1
 
-{/Users/yixin.sun/Library/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<figures/fig1_desc.png, id=34, 455.0601pt x 312.9291pt>
+{/Users/yixin.sun/Library/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/p
+dftex.map}]
+<figures/fig1_desc.png, id=39, 455.0601pt x 312.9291pt>
 File: figures/fig1_desc.png Graphic file (type png)
 <use figures/fig1_desc.png>
-Package pdftex.def Info: figures/fig1_desc.png  used on input line 26.
+Package pdftex.def Info: figures/fig1_desc.png  used on input line 27.
 (pdftex.def)             Requested size: 469.75502pt x 323.05112pt.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 31.
+(Font)              <8> on input line 32.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 31.
+(Font)              <6> on input line 32.
 
 
 [2 <./figures/fig1_desc.png>]
-<figures/fig2_infiltation.png, id=44, 426.6339pt x 284.5029pt>
+<figures/fig2_infiltation.png, id=49, 426.6339pt x 284.5029pt>
 File: figures/fig2_infiltation.png Graphic file (type png)
 <use figures/fig2_infiltation.png>
-Package pdftex.def Info: figures/fig2_infiltation.png  used on input line 38.
+Package pdftex.def Info: figures/fig2_infiltation.png  used on input line 39.
 (pdftex.def)             Requested size: 469.75502pt x 313.26237pt.
 
 
 [3 <./figures/fig2_infiltation.png>]
-<figures/fig3_sources.png, id=51, 398.2077pt x 227.4096pt>
+<figures/fig3_sources.png, id=56, 398.2077pt x 227.4096pt>
 File: figures/fig3_sources.png Graphic file (type png)
 <use figures/fig3_sources.png>
-Package pdftex.def Info: figures/fig3_sources.png  used on input line 52.
+Package pdftex.def Info: figures/fig3_sources.png  used on input line 53.
 (pdftex.def)             Requested size: 469.75502pt x 268.27853pt.
 
 
 [4 <./figures/fig3_sources.png>]
-<figures/fig4_pm_income.png, id=58, 426.6339pt x 341.3553pt>
+<figures/fig4_pm_income.png, id=63, 426.6339pt x 341.3553pt>
 File: figures/fig4_pm_income.png Graphic file (type png)
 <use figures/fig4_pm_income.png>
-Package pdftex.def Info: figures/fig4_pm_income.png  used on input line 66.
+Package pdftex.def Info: figures/fig4_pm_income.png  used on input line 67.
 (pdftex.def)             Requested size: 469.75502pt x 375.86179pt.
-<figures/inf_lags.png, id=59, 369.7815pt x 170.5572pt>
+<figures/inf_lags.png, id=64, 369.7815pt x 170.5572pt>
 File: figures/inf_lags.png Graphic file (type png)
 <use figures/inf_lags.png>
-Package pdftex.def Info: figures/inf_lags.png  used on input line 85.
+Package pdftex.def Info: figures/inf_lags.png  used on input line 86.
 (pdftex.def)             Requested size: 469.75502pt x 216.6859pt.
 
 
 [5 <./figures/fig4_pm_income.png>]
 
 [6 <./figures/inf_lags.png>]
-<figures/inf_aggregation.png, id=72, 398.2077pt x 170.5572pt>
+<figures/inf_aggregation.png, id=77, 398.2077pt x 170.5572pt>
 File: figures/inf_aggregation.png Graphic file (type png)
 <use figures/inf_aggregation.png>
-Package pdftex.def Info: figures/inf_aggregation.png  used on input line 95.
+Package pdftex.def Info: figures/inf_aggregation.png  used on input line 96.
 (pdftex.def)             Requested size: 469.75502pt x 201.2089pt.
 
 
 [7 <./figures/inf_aggregation.png>]
-<figures/pm_income_robustness.png, id=80, 398.2077pt x 170.5572pt>
+<figures/pm_income_robustness.png, id=85, 398.2077pt x 170.5572pt>
 File: figures/pm_income_robustness.png Graphic file (type png)
 <use figures/pm_income_robustness.png>
-Package pdftex.def Info: figures/pm_income_robustness.png  used on input line 105.
+Package pdftex.def Info: figures/pm_income_robustness.png  used on input line 1
+06.
 (pdftex.def)             Requested size: 469.75502pt x 201.2089pt.
 
 
 [8 <./figures/pm_income_robustness.png>]
-<figures/fig_appendix_spike_sources.png, id=87, 398.2077pt x 227.4096pt>
+<figures/fig_appendix_spike_sources.png, id=92, 398.2077pt x 227.4096pt>
 File: figures/fig_appendix_spike_sources.png Graphic file (type png)
 <use figures/fig_appendix_spike_sources.png>
-Package pdftex.def Info: figures/fig_appendix_spike_sources.png  used on input line 122.
+Package pdftex.def Info: figures/fig_appendix_spike_sources.png  used on input 
+line 123.
 (pdftex.def)             Requested size: 352.31625pt x 201.21063pt.
 
 
 [9 <./figures/fig_appendix_spike_sources.png>]
-<figures/distance_to_road_ecdf.png, id=94, 426.6339pt x 284.5029pt>
+<figures/distance_to_road_ecdf.png, id=99, 426.6339pt x 284.5029pt>
 File: figures/distance_to_road_ecdf.png Graphic file (type png)
 <use figures/distance_to_road_ecdf.png>
-Package pdftex.def Info: figures/distance_to_road_ecdf.png  used on input line 133.
+Package pdftex.def Info: figures/distance_to_road_ecdf.png  used on input line 
+134.
 (pdftex.def)             Requested size: 352.31625pt x 234.94786pt.
 
 
 [10 <./figures/distance_to_road_ecdf.png>]
-<figures/sensor_correlations.png, id=101, 939.51pt x 578.16pt>
+<figures/sensor_correlations.png, id=106, 939.51pt x 578.16pt>
 File: figures/sensor_correlations.png Graphic file (type png)
 <use figures/sensor_correlations.png>
-Package pdftex.def Info: figures/sensor_correlations.png  used on input line 144.
+Package pdftex.def Info: figures/sensor_correlations.png  used on input line 14
+5.
 (pdftex.def)             Requested size: 585.38303pt x 360.23753pt.
 
 
 [11
 
- <./figures/sensor_correlations.png>] (./tables/mean_contribution_table.tex
+ <./figures/sensor_correlations.png>] (./tables/paper_stats.tex)
+
+[12
+
+] (./tables/mean_contribution_table.tex
 Overfull \hbox (144.47697pt too wide) in paragraph at lines 3--18
  [][] 
  []
 
 ) (./tables/covariates.tex)
 
-[12
+[13] (./tables/sensor_selection.tex)
 
-] (./tables/sensor_selection.tex)
+[14] (./tables/reg_outdoor_burning.tex)
 
-[13] (./tables/reg_outdoor_burning.tex)
+[15] (./tables/spike_contribution_table.tex)
 
-[14] (./tables/spike_contribution_table.tex)
-
-[15] (./all_figures.aux)
+[16] (./all_figures.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `all_figures.out' has not changed.
-(rerunfilecheck)             Checksum: 4189EF29E7431C7C2E125777C5EABAD8;454.
+(rerunfilecheck)             Checksum: D2DFA8CCD69EB9616690B4A8C0DAB939;583.
  ) 
 Here is how much of TeX's memory you used:
- 10799 strings out of 474662
- 177098 string characters out of 5751109
- 583627 words of memory out of 5000000
- 33676 multiletter control sequences out of 15000+600000
- 564969 words of font info for 56 fonts, out of 8000000 for 9000
+ 11278 strings out of 474662
+ 183846 string characters out of 5751109
+ 597610 words of memory out of 5000000
+ 34141 multiletter control sequences out of 15000+600000
+ 565306 words of font info for 57 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,10n,79p,813b,466s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on all_figures.pdf (15 pages, 2209721 bytes).
+ 75i,10n,79p,749b,467s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ </Users/yixin.sun/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknapp
+en/ec/tcrm1200.600pk></usr/local/texlive/2025basic/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmbx8.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2025basic/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2025basic/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2025basic/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2025basic/texmf-
+dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025basic/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
+Output written on all_figures.pdf (16 pages, 2212358 bytes).
 PDF statistics:
- 181 PDF objects out of 1000 (max. 8388607)
- 125 compressed objects within 2 object streams
- 36 named destinations out of 1000 (max. 500000)
- 83 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 198 PDF objects out of 1000 (max. 8388607)
+ 140 compressed objects within 2 object streams
+ 38 named destinations out of 1000 (max. 500000)
+ 91 words of extra memory for PDF output out of 10000 (max. 10000000)
 

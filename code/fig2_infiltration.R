@@ -160,7 +160,7 @@ p_inf <-
   geom_point(size = .5) +
   ylab("Infiltration Factor") +
   facet_wrap(~"Overall") +
-  ylim(c(0, 1.5)) +
+  ylim(c(0, 1)) +
   geom_hline(aes(yintercept = .29), color = "#d95f02", linetype = "dashed", size = .1) +
   geom_text(aes(x = 4, y = .4, label = "US Inf. Rate\n(Lunderberg et. al 2023)"), size = 1.4, color = "#d95f02") +
   theme(axis.text.x = element_text(size = 4.5)) ; p_inf
@@ -294,7 +294,7 @@ p_het <-
   ylab("Infiltration Factor") +
   geom_text(aes(x = 1.75, y = -.1, label = fstat), size = 1.5) +
   theme(legend.position = "none") +
-  ylim(c(0, 1.5)) +
+  ylim(c(0, 1)) +
   annotate(# Add vertical lines between graphs
     "segment", x = 0,  xend = 0, y = -Inf, yend = Inf, color = "gray80",
     linetype = "solid") ; p_het

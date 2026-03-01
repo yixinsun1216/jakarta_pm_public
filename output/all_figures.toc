@@ -1,4 +1,5 @@
 \contentsline {section}{\numberline {1}Main Figures}{2}{section.1}%
 \contentsline {section}{\numberline {2}Appendix Figures}{6}{section.2}%
 \contentsline {section}{\numberline {3}Main Tables}{12}{section.3}%
-\contentsline {section}{\numberline {4}Appendix Tables}{12}{section.4}%
+\contentsline {section}{\numberline {4}Key Results Text}{12}{section.4}%
+\contentsline {section}{\numberline {5}Appendix Tables}{13}{section.5}%
