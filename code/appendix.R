@@ -407,7 +407,7 @@ bind_rows(tidy_main, tidy_8hours, tidy_24hours) %>%
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2) + 
   geom_point(size = .5) + 
   theme_classic() +
-  ylab("Infiltration Rate") + 
+  ylab("Infiltration Factor") + 
   scale_color_brewer(palette = "Dark2") +
   scale_y_continuous(limits = c(0, 1.2), expand = c(0, 0)) +
   theme(axis.line = element_line(size = .1), 
@@ -553,8 +553,8 @@ dict_sources <- c(
   "pm25_outdoor3" = "Outdoor Ambient",
   "cooking" = "Cooking",
   "dist_primary" = "Distance to Main Road",
-  "as.factor(smoke24_endline)1" = "Smoked (24 Hours)",
-  "as.factor(smoke24_endline)" = "Smoked (24 Hours)",
+  "as.factor(smoke24_endline)1" = "Smoking Household",
+  "as.factor(smoke24_endline)" = "Smoking Household",
   "as.factor(room_pmsource_kitchen)1" = "Kitchen source",
   "as.factor(room_pmsource_kitchen)" = "Kitchen source",
   "as.factor(trash_burning_1week_baseline)1 or 2 times" = "Waste Burning (1-2/week)",
@@ -639,7 +639,7 @@ output_spike <-
   mutate(term = dplyr::recode(term, !!!dict_sources)) %>%
   full_join(mutate(output_lmg_spike_tbl, term = dplyr::recode(term, !!!dict_sources)), by = "term") %>%
   mutate(lmg = scales::percent(lmg, accuracy = 1),
-         term = factor(term, levels = c("Outdoor Ambient", "Smoked (24 Hours)", "Waste Burning (1-2/week)",
+         term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning (1-2/week)",
                                         "Waste Burning (2+/week)", "Waste Burning", "Kitchen source", "Cooking",
                                         "Distance to Main Road"))) %>%
   arrange(term)
@@ -676,7 +676,7 @@ coef_spike <-
               dplyr::select(term, conf.low, conf.high)) %>%
   filter(term %in% spike_source_terms) %>%
   mutate(term = dplyr::recode(term, !!!dict_sources),
-         term = factor(term, levels = rev(c("Smoked (24 Hours)",
+         term = factor(term, levels = rev(c("Smoking Household",
                                             "Waste Burning (2+/week)",
                                             "Waste Burning (1-2/week)",
                                             "Kitchen source",
@@ -713,7 +713,7 @@ p_spike <-
          term = str_wrap(term, 12),
          term = factor(term, levels = c("Distance to\nMain Road", "Cooking", "Kitchen\nsource",
                                         "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
-                                        "Smoked (24\nHours)", "Outdoor\nAmbient"))) %>%
+                                        "Smoking\nHousehold", "Outdoor\nAmbient"))) %>%
   ggplot(aes(y = term, x = frac, fill = outdoor)) +
   geom_col(width = .75) +
   geom_errorbarh(aes(xmin = frac.low, xmax = frac.high),

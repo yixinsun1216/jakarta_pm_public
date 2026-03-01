@@ -158,7 +158,7 @@ p_inf <-
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .39, size = .2) +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2) +
   geom_point(size = .5) +
-  ylab("Infiltration Rate") +
+  ylab("Infiltration Factor") +
   facet_wrap(~"Overall") +
   ylim(c(0, 1.5)) +
   geom_hline(aes(yintercept = .29), color = "#d95f02", linetype = "dashed", size = .1) +
@@ -291,7 +291,7 @@ p_het <-
   geom_point(size = .5)+
   facet_grid(~title, scales = "free_x", space = "free_x") +
   scale_color_brewer(palette = "Dark2") +
-  ylab("Infiltration Rate") +
+  ylab("Infiltration Factor") +
   geom_text(aes(x = 1.75, y = -.1, label = fstat), size = 1.5) +
   theme(legend.position = "none") +
   ylim(c(0, 1.5)) +
@@ -327,7 +327,7 @@ p_spline <-
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .2, color = "#d95f02") +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2, color = "#d95f02") +
   geom_point(size = .5, color = "#d95f02") +
-  ylab("Infiltration Rate") +
+  ylab("Infiltration Factor") +
   ylim(c(0, 1.06)) +
   xlab(expression(Outdoor ~PM[2.5] ~ Range~ (mu * g~m^-3))) +
   theme(axis.title.x = element_text(size = 5))  ; p_spline
@@ -373,7 +373,7 @@ p_beliefs <-
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .2, color = "#d95f02") +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2, color = "#d95f02") +
   geom_point(size = .5, color = "#d95f02") +
-  ylab("Infiltration Rate") +
+  ylab("Infiltration Factor") +
   xlab("Beliefs About Outdoor AQI") +
   ylim(c(0, 1.06)) +
   theme(axis.title.x = element_text(size = 5)) ; p_beliefs

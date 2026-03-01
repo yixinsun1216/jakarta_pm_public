@@ -41,7 +41,7 @@ data_locations <-
   mutate(type = factor(type, levels = c("Outdoor Sensor", "Indoor HH Monitor")))
 
 # get a nice background for the maps - need to register stadia API
-register_stadiamaps("44c45f7e-fc84-46ec-9f3e-60444545e954", write = TRUE)
+register_stadiamaps("44c45f7e-fc84-46ec-9f3e-60444545e954", write = FALSE)
 sensor_bbox <- st_bbox(st_buffer(data_locations, 100))
 names(sensor_bbox) <- c("left", "bottom", "right", "top")
 background <- get_stadiamap(sensor_bbox, zoom = 12, maptype = "alidade_smooth") 

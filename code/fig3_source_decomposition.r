@@ -218,13 +218,25 @@ coef_pm <-
 
 p_sources_coef <-
   ggplot(coef_pm, aes(x = estimate, y = term)) +
+  geom_vline(xintercept = 0, color = "gray50", linetype = "dashed", linewidth = .1) +
   geom_vline(xintercept = mean_pm_indoor, linetype = "dashed", color = "#1b9e77", size = .2) +
-  geom_errorbarh(aes(xmin = conf.low95, xmax = conf.high95), height = 0, alpha = .4, size = .2) +
-  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0, size = .2) +
-  geom_point(size = .8) +
+  geom_errorbarh(aes(xmin = conf.low95, xmax = conf.high95), height = 0, alpha = .4, size = .2, color = "#1b9e77") +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0, size = .2, color = "#1b9e77") +
+  geom_point(size = .8, color = "#1b9e77") +
   xlab(expression(PM[2.5] ~ (mu * g~m^-3))) +
-  geom_text(aes(x = mean_pm_indoor, y = 6.5, label = "mean"), size = 1.5, color = "#1b9e77") +
-  facet_wrap(~"PM[2.5]") ; p_sources_coef
+  ylab("Effect of\nHyperlocal\nSource") +
+  annotate("text", x = mean_pm_indoor + 0.3, y = 6.5, label = "mean", size = 1.5, color = "#1b9e77", hjust = 0) +
+  theme_classic() +
+  theme(panel.grid = element_blank(),
+        axis.line.y = element_blank(),
+        axis.title.x = element_text(size = 6),
+        axis.title.y = element_text(size = 5, angle = 90),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        text = element_text(size = 6),
+        axis.line = element_line(size = .1),
+        axis.ticks = element_line(size = .1),
+        legend.position = "none")
 
 # Right pane: mean contribution bars (unchanged)
 p_contributions <-
@@ -232,18 +244,28 @@ p_contributions <-
   filter(!is.na(frac)) %>%
   mutate(outdoor = str_detect(term, "Outdoor"),
          term = str_wrap(term, 12),
-         term = factor(term, levels = c("Outdoor\nAmbient", "Smoked (24\nHours)", "Waste\nBurning\n(1-2/week)",
-                                        "Waste\nBurning\n(2+/week)", "Kitchen\nsource", "Cooking",
-                                        "Distance to\nMain Road"))) %>%
-  ggplot(aes(x = term, y = frac, fill = outdoor)) +
+         term = factor(term, levels = c("Distance to\nMain Road", "Cooking", "Kitchen\nsource",
+                                        "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
+                                        "Smoked (24\nHours)", "Outdoor\nAmbient"))) %>%
+  ggplot(aes(y = term, x = frac, fill = outdoor)) +
   geom_col(width = .75) +
-  geom_errorbar(aes(ymin = frac.low, ymax = frac.high),
-        width = 0, size = .1, color = "gray60") +
-  geom_hline(aes(yintercept = 0), size = .1) +
+  geom_errorbarh(aes(xmin = frac.low, xmax = frac.high),
+        height = 0, size = .1, color = "gray60") +
+  geom_vline(xintercept = 0, size = .1) +
   scale_fill_brewer(palette = "Dark2") +
-  geom_vline(aes(xintercept = 0)) +
-  ylab("Source of\nIndoor PM2.5") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1), limits = c(-.382, .81))
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1), limits = c(-.382, .81)) +
+  ylab("Source") +
+  xlab("Estimated Contribution to Indoor PM2.5 (%)") +
+  theme_classic() +
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_text(size = 6),
+        axis.title.y = element_text(size = 6, angle = 90),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        text = element_text(size = 6),
+        axis.line = element_line(size = .1),
+        axis.ticks = element_line(size = .1),
+        legend.position = "none")
 
 p_sources_coef + p_contributions +
   plot_annotation(tag_levels = "a", tag_suffix = ".")
@@ -252,41 +274,52 @@ ggsave(file.path(gdir, "output/figures/fig3_sources.png"),
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Income decomposition via split-sample approach
-# Run main spec separately per income quartile; extract outdoor + smoking coefs
+# Income decomposition via interaction approach
+# Single regression with income_quart interacted with all source variables
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+reg_decomp_income <- feols(
+  pm25_indoor ~
+    income_quart + 
+    i(income_quart, pm25_outdoor3) +
+    i(as.factor(trash_burning_1week_baseline), income_quart, ref = "Never") +
+    i(as.factor(smoke24_endline), income_quart, ref = 0) +
+    i(as.factor(room_pmsource_kitchen), income_quart, ref = 0) +
+    i(cooking, income_quart, ref = 0) +
+    i(income_quart, dist_primary) +
+    temp_outdoor3 + humidity_outdoor3 |
+    hour + week,
+  data = pm,
+  cluster = ~respondent_id + date_hour,
+  weights = ~weight_hour
+)
+
+# Extract income-quartile-specific contributions
 income_quart_levels <- pm %>%
   filter(!is.na(income_quart)) %>%
   distinct(income_quart) %>%
   pull(income_quart) %>%
   as.character()
 
+coefs_decomp <- coef(reg_decomp_income)
+
 decomp_by_income <-
   map_df(income_quart_levels, function(iq) {
     data_iq <- filter(pm, income_quart == iq)
 
-    reg_iq <- feols(
-      fixest::xpd(pm25_indoor ~ .[rhs_fml_sources] | hour + week),
-      data    = data_iq,
-      cluster = ~respondent_id + date_hour,
-      weights = ~weight_hour
-    )
-
-    coefs_iq <- coef(reg_iq)
-
-    beta_outdoor <- unname(coefs_iq["pm25_outdoor3"])
-    smoke_name   <- grep("smoke24_endline.*1$|smoke24_endline1", names(coefs_iq), value = TRUE)[1]
-    beta_smoke   <- if (!is.na(smoke_name)) unname(coefs_iq[smoke_name]) else NA_real_
-
+    # outdoor ambient: i(income_quart, pm25_outdoor3) -> "income_quart::<iq>:pm25_outdoor3"
+    outdoor_coef_name <- paste0("income_quart::", iq, ":pm25_outdoor3")
+    beta_outdoor <- unname(coefs_decomp[outdoor_coef_name])
     mean_outdoor <- mean(data_iq$pm25_outdoor3, na.rm = TRUE)
-    mean_smoke   <- mean(as.numeric(as.character(data_iq$smoke24_endline)), na.rm = TRUE)
-    mean_pm      <- mean(data_iq$pm25_indoor, na.rm = TRUE)
+
+    # smoking: i(as.factor(smoke24_endline), income_quart, ref = 0) -> "as.factor(smoke24_endline)::1:income_quart::<iq>"
+    smoke_coef_name <- paste0("as.factor(smoke24_endline)::1:income_quart::", iq)
+    beta_smoke <- unname(coefs_decomp[smoke_coef_name])
+    mean_smoke <- mean(as.numeric(as.character(data_iq$smoke24_endline)), na.rm = TRUE)
 
     tibble(
       income_quart = iq,
-      term         = c("Outdoor Ambient", "Smoked (24 Hours)"),
-      contribution = c(beta_outdoor * mean_outdoor, beta_smoke * mean_smoke),
-      mean_pm      = mean_pm
+      term         = c("Outdoor\nAmbient", "Smoking\nHousehold"),
+      contribution = c(beta_outdoor * mean_outdoor, beta_smoke * mean_smoke)
     )
   })
 
@@ -308,16 +341,30 @@ decomp_remainder <-
   left_join(r_indoor, by = "income_quart") %>%
   mutate(unexplained = estimate - contribution) %>%
   dplyr::select(income_quart, contribution = unexplained) %>%
-  mutate(term = "Other")
+  mutate(term = "Other\n(Hyperlocal)")
+
+decomp_all <-
+  bind_rows(decomp_by_income_tokeep, decomp_remainder) %>%
+  mutate(term = factor(term, levels = c("Smoking\nHousehold", "Other\n(Hyperlocal)", "Outdoor\nAmbient")),
+         income_quart = if_else(income_quart == "Income Bin 1", "Income Bin 1 (lowest)", income_quart),
+         income_quart = str_wrap(income_quart, width = 5),
+         income_quart = factor(income_quart, levels = c("Income\nBin 1\n(lowest)", "Income\nBin 2", "Income\nBin 3", "Income\nBin 4")))
+
+# compute label positions (cumulative midpoints) for Bin 1 only
+decomp_labels <- decomp_all %>%
+  filter(income_quart == "Income\nBin 1\n(lowest)") %>%
+  arrange(term) %>%
+  mutate(y_mid = c(50, 33, 12),
+         term_label = as.character(term))
+
 
 p_decomp_income <-
-  bind_rows(decomp_by_income_tokeep, decomp_remainder) %>%
-  mutate(term = factor(term, levels = c("Outdoor Ambient", "Other", "Smoked (24 Hours)"))) %>%
-   mutate(income_quart = if_else(income_quart == "Income Bin 1", "Income Bin 1 (lowest)", income_quart),
-          income_quart = str_wrap(income_quart, width = 5),
-          income_quart = factor(income_quart, levels = c("Income\nBin 1\n(lowest)", "Income\nBin 2", "Income\nBin 3", "Income\nBin 4"))) %>%
+  decomp_all %>%
   ggplot(aes(x = income_quart, y = contribution, fill = term)) +
   geom_col(width = .75) +
+  geom_text(data = decomp_labels,
+            aes(y = y_mid, label = term_label),
+            size = 1.3, color = "white", lineheight = 0.85) +
   geom_hline(yintercept = 0, linewidth = .2) +
   scale_fill_brewer(palette = "Dark2") +
   ylab(expression(PM[2.5] ~ (mu * g/m^3))) +

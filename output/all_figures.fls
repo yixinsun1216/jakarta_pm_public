@@ -201,7 +201,6 @@ INPUT ./figures/sensor_correlations.png
 INPUT ./tables/mean_contribution_table.tex
 INPUT ./tables/mean_contribution_table.tex
 INPUT tables/mean_contribution_table.tex
-INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmbx8.tfm
 INPUT ./tables/covariates.tex
 INPUT ./tables/covariates.tex
 INPUT tables/covariates.tex
@@ -215,6 +214,7 @@ INPUT tables/reg_outdoor_burning.tex
 INPUT ./tables/spike_contribution_table.tex
 INPUT ./tables/spike_contribution_table.tex
 INPUT tables/spike_contribution_table.tex
+INPUT /usr/local/texlive/2025basic/texmf-dist/fonts/tfm/public/cm/cmbx8.tfm
 INPUT all_figures.aux
 INPUT ./all_figures.out
 INPUT ./all_figures.out

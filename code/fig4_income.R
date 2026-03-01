@@ -39,6 +39,7 @@ p_decomp <-
   read_rds(file.path(ddir, "plot_decomp_by_income.rds")) +
   scale_y_continuous(expand = c(0,0)) +
   theme(axis.ticks = element_line(size = .1),
+        legend.position = "none",
         text = element_text(size = 6),
         strip.text= element_text(size = 5.5),
         title = element_text(face = "bold",size = 5)) ; p_decomp
@@ -64,7 +65,7 @@ tidy_income <- function(r){
 }
 
 vars <-   c("housing_room_number", "room_ac", "open_room")
-var_yaxis <- c("HH Number of Rooms", "Prob(Has AC)", "Prob(Window/Door Open)")
+var_yaxis <- c("HH Number of Rooms", "Pr(Has AC)", "Pr(Window/Door Open)")
 
 p_char_income <-
   map2_df(vars, var_yaxis, function(x, y){
@@ -78,7 +79,7 @@ p_char_income <-
       mutate(var = y,
              fstat = f_stat)
   }) %>%
-  mutate(var = factor(var, levels = c("Prob(Has AC)", "Prob(Window/Door Open)", "HH Number of Rooms"))) %>%
+  mutate(var = factor(var, levels = c("Pr(Has AC)", "Pr(Window/Door Open)", "HH Number of Rooms"))) %>%
   ggplot(aes(x = income, y = estimate)) +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#1b9e77", width = 0, size = .1) +
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#1b9e77", width = 0, alpha = .4, size = .1) +
@@ -89,7 +90,7 @@ p_char_income <-
   geom_text(aes(x = 2, y = -.1, label = fstat), size = 1.5, color = "#1b9e77") +
   theme(title = element_text(face = "bold",size = 5),
         axis.text =element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 45, hjust = 1),
+        axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
@@ -111,13 +112,13 @@ regs_indoor <-
        feols(smoke24_endline ~ income_quart + 0, data = survey, cluster = ~respondent_id))
 tidy_trash <-
   tidy_income(regs_indoor[[2]])  %>%
-  mutate(title = "Prob(Neighborhood~Waste~Burning)",
+  mutate(title = "Pr(Waste~Burning)",
          order = 3,
          fstat = paste0("Bin 1 = Bin 4: ", round(linearHypothesis(regs_indoor[[2]], c("income_quartIncome Bin 1 = income_quartIncome Bin 4"))$`Pr(>Chisq)`[2], digits = 3)))
 
 tidy_smoke <-
   tidy_income(regs_indoor[[3]]) %>%
-  mutate(title = "Prob(Smoked,~Last~24~Hours)",
+  mutate(title = "Pr(Smoking~HH)",
          order = 2,
          fstat = paste0("Bin 1 = Bin 4: ", round(linearHypothesis(regs_indoor[[3]], c("income_quartIncome Bin 1 = income_quartIncome Bin 4"))$`Pr(>Chisq)`[2], digits = 3)))
 
@@ -134,7 +135,7 @@ p_hyperlocal_income <-
   facet_wrap(~title, labeller = label_parsed, scales = "free_y") +
   theme(title = element_text(face = "bold",size = 5),
         axis.text =element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 45, hjust = 1),
+        axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
@@ -161,9 +162,9 @@ p_income_inf <-
   geom_point(size = .5, color = "#7570b3") +
   theme_classic() +
   expand_limits(y = 0) +
-  facet_wrap(~"Infiltration Rate") +
+  facet_wrap(~"Infiltration Factor") +
   geom_text(aes(x = 3.5, y = -.05, label = fstat), size = 1.5, color = "#7570b3") +
-  ylab("Infiltration Rate") +
+  ylab("Infiltration Factor") +
   theme(title = element_text(face = "bold", size = 5),
         axis.text = element_text(size = 5),
         axis.line = element_line(size = .1),
