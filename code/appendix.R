@@ -14,14 +14,6 @@ survey <-
 pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
   mutate(cooking = replace_na(cooking, 0))
 
-# ------------------------------------------------------------------
-# Inverse-frequency weights: upweight hours with more missing data
-# ------------------------------------------------------------------
-hour_weights <- pm %>%
-  group_by(hour) %>%
-  summarise(prop_observed = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hour = 1 / prop_observed)
-pm <- pm %>% left_join(hour_weights, by = "hour")
 
 rp_to_usd <- 0.000062
 
@@ -167,6 +159,11 @@ hh_mindist <-
   dplyr::select(respondent_id, sensor_mindist = distance, dist_central, dist_south) %>%
   full_join(survey) %>%
   left_join(hh_pm_indoor) %>% 
+  ungroup() %>% 
+
+  # fill in missing pm25_indoor with average 
+  mutate(pm25_indoor = if_else(is.na(pm25_indoor), mean(hh_pm_indoor$pm25_indoor, na.rm = TRUE), pm25_indoor), 
+        housing_room_number = if_else(is.na(housing_room_number), mean(housing_room_number, na.rm = TRUE), housing_room_number)) %>%
   filter(treatment_status == "Fan") # add in !hardware cancel later
 
 xvars <- "pm25_indoor + pm25_outdoor24_baseline +income_usd  + housing_room_number + housing_ac +  
@@ -184,7 +181,7 @@ feols(as.formula(paste("sensor_mindist ~", xvars)), data = hh_mindist)  %>%
                   hoh_school_secondaryTRUE = "HOH Attended Secondary School", 
                   hoh_school_tertiaryTRUE = "HOH Attended Tertiary School", 
                   sensor_mindist = "Distance to Outdoor Sensor (meters)"), 
-         drop = "Constant", fitstat = c("my", "n"),
+         drop = "Constant", fitstat = c("my", "n"), 
          digits = "r2", replace = TRUE,
          tex = TRUE, file = file.path(gdir, "output/tables/sensor_selection.tex"))
 
@@ -201,14 +198,19 @@ tidy_up <- function(r){
                           "Ambient Outdoor", "Indoor"))
 }
 
+pm %>%
+  group_by(respondent_id, income_quart) %>%
+  summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE), 
+            pm25_outdoor = mean(pm25_outdoor3, na.rm = TRUE))
+
 pm_hh_hour <- 
   pm %>%
   group_by(respondent_id, hour, income_quart) %>%
   summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE), 
             pm25_outdoor = mean(pm25_outdoor3, na.rm = TRUE))
 
-r_outdoor1 <- feols(pm25_outdoor3 ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour, weights = ~weight_hour)
-r_indoor1 <- feols(pm25_indoor ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour, weights = ~weight_hour)
+r_outdoor1 <- feols(pm25_outdoor3 ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour)
+r_indoor1 <- feols(pm25_indoor ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour)
 r_outdoor2 <- feols(pm25_outdoor ~ income_quart + 0, data = pm_hh_hour, cluster = ~respondent_id)
 r_indoor2 <- feols(pm25_indoor ~ income_quart + 0, data = pm_hh_hour, cluster = ~respondent_id) 
 r_outdoor3 <- feols(pm25outdoor_mean ~ income_quart + 0, data = filter(survey, sensor_mindist < 2000), cluster = ~respondent_id)
@@ -267,10 +269,9 @@ x_pm_lags <- paste0(c("pm25_outdoor3", paste0("pm25_outdoor3_lag", 1:11)), colla
 fes <- c("hour + week", "respondent_id + hour + week", "respondent_id^hour + week")
 
 reg_lags <-
-  paste0("pm25_indoor", "~", x_pm_lags, "+temp_outdoor3 + humidity_outdoor3 |") %>%
+  paste0("pm25_indoor", "~", x_pm_lags, "+temp_outdoor3 + humidity_outdoor3 + as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline) + as.factor(room_pmsource_kitchen) + cooking + dist_primary |") %>%
   paste0(fes) %>%
-  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour,
-             weights = ~weight_hour))
+  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour))
 
 coef_lags <-
   reg_lags %>%
@@ -324,11 +325,9 @@ ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg
 # show main results
 reg_main <-
   paste0("pm25_indoor~pm25_outdoor3+temp_outdoor3 + humidity_outdoor3 |", fes) %>%
-  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour,
-             weights = ~weight_hour)) %>%
+  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour)) %>%
   append(list(feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id^hour + week,
-                    data = filter(pm, sensor_mindist < 1000), cluster = ~respondent_id+date_hour,
-                    weights = ~weight_hour)))
+                    data = filter(pm, sensor_mindist < 1000), cluster = ~respondent_id+date_hour)))
 
 tidy_main <- 
   map2_df(reg_main,  c("Hour +\nWeek FE", "HH + Hour\n+ Week FE", "HH^Hour\n+ Week FE", "<1km to\nOutdoor\nSensor"), 
@@ -348,19 +347,18 @@ pm_agg8 <-
             pm25_outdoor_matchmissing8hr = mean(pm25_outdoor3_matchmissing, na.rm = TRUE),
          pm25_indoor8hr = mean(pm25_indoor, na.rm = TRUE),
          temp_outdoor8hr = mean(temp_outdoor3, na.rm = TRUE),
-         humidity_outdoor8hr = mean(humidity_outdoor3, na.rm = TRUE),
-         weight_hour8hr = mean(weight_hour, na.rm = TRUE)) %>%
+         humidity_outdoor8hr = mean(humidity_outdoor3, na.rm = TRUE)) %>%
  ungroup()
 
 reg_8hours <-
   list(feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | period + week,
-            data = pm_agg8, cluster = ~respondent_id+date, weights = ~weight_hour8hr),
+            data = pm_agg8, cluster = ~respondent_id+date8hr),
        feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | period + respondent_id+ week,
-            data = pm_agg8, cluster = ~respondent_id+date, weights = ~weight_hour8hr),
+            data = pm_agg8, cluster = ~respondent_id+date8hr),
        feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | respondent_id^period + week,
-            data = pm_agg8, cluster = ~respondent_id+date, weights = ~weight_hour8hr),
+            data = pm_agg8, cluster = ~respondent_id+date8hr),
        feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | respondent_id^period + week,
-            data = filter(pm_agg8, sensor_mindist < 1000), cluster = ~respondent_id+date, weights = ~weight_hour8hr))  
+            data = filter(pm_agg8, sensor_mindist < 1000), cluster = ~respondent_id+date8hr))  
 
 tidy_8hours <- 
   map2_df(reg_8hours, c("Period +\nWeek FE", "HH + Period\n+ Week FE", "HH^Period\n+ Week FE", "<1km to\nOutdoor\nSensor"), 
@@ -378,17 +376,16 @@ pm_agg24 <-
             pm25_outdoor_matchmissing24hr = mean(pm25_outdoor3_matchmissing, na.rm = TRUE),
          pm25_indoor24hr = mean(pm25_indoor, na.rm = TRUE),
          temp_outdoor24hr = mean(temp_outdoor3, na.rm = TRUE),
-         humidity_outdoor24hr = mean(humidity_outdoor3, na.rm = TRUE),
-         weight_hour24hr = mean(weight_hour, na.rm = TRUE)) %>%
+         humidity_outdoor24hr = mean(humidity_outdoor3, na.rm = TRUE)) %>%
  ungroup()
 
 reg_24hours <-
   list(feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | week,
-            data = pm_agg24, cluster = ~respondent_id+date, weights = ~weight_hour24hr),
+            data = pm_agg24, cluster = ~respondent_id+date24hr),
        feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | respondent_id + week,
-            data = pm_agg24, cluster = ~respondent_id+date, weights = ~weight_hour24hr),
+            data = pm_agg24, cluster = ~respondent_id+date24hr),
        feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | respondent_id + week,
-            data = filter(pm_agg24, sensor_mindist < 1000), cluster = ~respondent_id+date, weights = ~weight_hour24hr))
+            data = filter(pm_agg24, sensor_mindist < 1000), cluster = ~respondent_id+date24hr))
 
 tidy_24hours <- 
   map2_df(reg_24hours, c("Week FE", "HH + Week FE", "<1km to\nOutdoor\nSensor"), 
@@ -431,11 +428,11 @@ ggsave(file.path(gdir, "output/figures/inf_aggregation.png"), width = 14, height
 # ===================================================================
 reg_outdoor_burning <-
   feols(pm25_outdoor3 ~ trash_burning_1week_baseline + temp_outdoor3 + humidity_outdoor3| week + hour, data = pm,
-      cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+      cluster = ~respondent_id+date_hour)
 
 reg_outdoor_burning_2k <-
   feols(pm25_outdoor3 ~ trash_burning_1week_baseline + temp_outdoor3 + humidity_outdoor3| week + hour, data = filter(pm, sensor_mindist < 2000),
-      cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+      cluster = ~respondent_id+date_hour)
 
 etable(reg_outdoor_burning, reg_outdoor_burning_2k, 
         dict =c("trash_burning_1week_baseline1or2times" = "Waste Burning (1-2/week)", 
@@ -599,8 +596,7 @@ compute_mean_contrib_app <- function(model, rhs_fml, data, outcome_var) {
 reg_spikes <- feols(
   fixest::xpd(spike ~ .[rhs_fml] | hour + week),
   data = pm,
-  cluster = ~ respondent_id + date_hour,
-  weights = ~weight_hour
+  cluster = ~ respondent_id + date_hour
 )
 
 output_spike_contrib <- compute_mean_contrib_app(
@@ -621,8 +617,7 @@ reg_spike_lm <- lm(
     dist_primary +
     as.factor(hour) +
     as.factor(week),
-  data = pm,
-  weights = weight_hour
+  data = pm
 )
 
 compute_lmg_tbl_app <- function(lm_model) {
@@ -652,10 +647,8 @@ output_spike %>%
       "R2 Contribution" = lmg) %>%
   knitr::kable(format.args = list(big.mark = ","),
               digits = c(NA, 3, 3, 2, 1, 1), format = "latex",
-              booktabs = TRUE, align = "c",
-              caption = "\\textbf{Table A4: Source Contributions to PM\\textsubscript{2.5} Spikes.} Analogous to Table 1 but with PM\\textsubscript{2.5} spikes ($>125.5~\\mu$g/m$^3$) as outcome.",
-              label = "spike_contrib") %>%
-  kableExtra::kable_styling(full_width = FALSE, latex_options = c("HOLD_position", "scale_down")) %>%
+              booktabs = TRUE, align = "c") %>%
+ # kableExtra::kable_styling(full_width = FALSE, latex_options = c("HOLD_position", "scale_down")) %>%
   writeLines(file.path(gdir, "output/tables/spike_contribution_table.tex"))
 
 # Left panel: coefficient plot (mirroring fig3 panel a style)
@@ -738,3 +731,117 @@ p_spike_coef + p_spike +
   plot_annotation(tag_levels = "a", tag_suffix = ".")
 ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.png"),
     width = 14, height = 8, bg = "transparent", units = "cm")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Missing data diagnostics
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 1) CDF of fraction missing by household
+hh_missing <-
+  pm %>%
+  group_by(respondent_id) %>%
+  summarise(n_total = n(),
+            n_missing = sum(is.na(pm25_indoor)),
+            frac_missing = n_missing / n_total,
+            .groups = "drop")
+
+p_missing_cdf <-
+  ggplot(hh_missing, aes(x = frac_missing)) +
+  stat_ecdf(color = "#1b9e77", linewidth = .4) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  xlab("Fraction of Hours with Missing Indoor PM2.5") +
+  ylab("Cumulative Share\nof Households") +
+  theme_classic() +
+  theme(axis.title = element_text(size = 6),
+        axis.text = element_text(size = 5),
+        axis.line = element_line(size = .1),
+        axis.ticks = element_line(size = .1),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA)); p_missing_cdf
+
+ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.png"),
+       width = 8, height = 6, bg = "transparent", units = "cm")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Robustness: infiltration under alternative weighting schemes
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Weight 2: inverse frequency by household (upweight HHs with more missing data)
+hh_weights <- pm %>%
+  group_by(respondent_id) %>%
+  summarise(prop_observed_hh = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
+  mutate(weight_hh = 1 / prop_observed_hh)
+
+# Weight 3: inverse frequency by household x hour
+hh_hour_weights <- pm %>%
+  group_by(respondent_id, hour) %>%
+  summarise(prop_observed_hh_hour = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
+  mutate(weight_hh_hour = 1 / prop_observed_hh_hour)
+
+pm_weights <- pm %>%
+  left_join(hh_weights, by = "respondent_id") %>%
+  left_join(hh_hour_weights, by = c("respondent_id", "hour"))
+
+# Col 1: main spec (hour weights)
+reg_w1 <- feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
+                data = pm_weights, cluster = ~respondent_id + date_hour)
+
+# Col 2: household weights
+reg_w2 <- feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
+                data = pm_weights, cluster = ~respondent_id + date_hour,
+                weights = ~weight_hh)
+
+# Col 3: household-hour weights
+reg_w3 <- feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
+                data = pm_weights, cluster = ~respondent_id + date_hour,
+                weights = ~weight_hh_hour)
+
+etable(reg_w1, reg_w2, reg_w3,
+       headers = c("Hour Weights", "HH Weights", "HH-Hour Weights"),
+       keep = "Outdoor",
+       dict = c("pm25_outdoor3" = "Outdoor PM2.5 (Infiltration Rate)"),
+       fitstat = c("n", "r2"),
+       tex = TRUE, replace = TRUE,
+       title = "Infiltration Rate Under Alternative Weighting Schemes",
+       file = file.path(gdir, "output/tables/infiltration_weights_robustness.tex"))
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Robustness: infiltration by distance to outdoor sensor
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dist_cuts <- c(500, 1000, 2000, Inf)
+dist_labels <- c("<500m", "<1km", "<2km", "All")
+
+regs_dist <- map2(dist_cuts, dist_labels, function(d, lab) {
+  dat <- if (is.infinite(d)) pm else filter(pm, sensor_mindist < d)
+  feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
+        data = dat, cluster = ~respondent_id + date_hour)
+})
+
+p_dist_robust <-
+  map2_df(regs_dist, dist_labels, function(x, y) {
+    tidy(x, conf.int = TRUE) %>%
+      dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
+      mutate(model = y) %>%
+      left_join(tidy(x, conf.int = TRUE, conf.level = .9))
+  }) %>%
+  filter(str_detect(term, "pm25_outdoor3")) %>%
+  mutate(model = factor(model, levels = dist_labels)) %>%
+  ggplot(aes(x = model, y = estimate)) +
+  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .2) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0, size = .2) +
+  geom_point(size = .5) +
+  ylab("Infiltration Factor") +
+  xlab("Maximum Distance to Outdoor Sensor") +
+  scale_y_continuous(limits = c(0, 1.1), breaks = c(0.25, 0.5, 0.75, 1)) +
+  theme_classic() +
+  theme(axis.title = element_text(size = 6),
+        axis.text = element_text(size = 5),
+        axis.line = element_line(size = .1),
+        axis.ticks = element_line(size = .1),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA)); p_dist_robust
+
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.png"),
+       width = 8, height = 6, bg = "transparent", units = "cm")

@@ -2,8 +2,6 @@
 rm(list=ls_extra())
 gc()
 
-
-
 theme_inf <-
   theme_classic() +
   theme(panel.grid.major = element_blank(),
@@ -47,15 +45,6 @@ pm <-
          house_size = factor(house_size, levels = c("Small", "Big")),
          cooking = replace_na(cooking, 0))
 
-# ------------------------------------------------------------------
-# Inverse-frequency weights: upweight hours with more missing data
-# ------------------------------------------------------------------
-hour_weights <- pm %>%
-  group_by(hour) %>%
-  summarise(prop_observed = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hour = 1 / prop_observed)
-pm <- pm %>% left_join(hour_weights, by = "hour")
-
 
 # ==================================================
 # panel 2a. main infiltration graph
@@ -63,20 +52,16 @@ pm <- pm %>% left_join(hour_weights, by = "hour")
 # robustness -----------------------------------------------
 # reg1: main spec now includes rhs_fml (source control variables)
 reg1 <- feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
-              pm, cluster = ~respondent_id+date_hour,
-              weights = ~weight_hour)
+              pm, cluster = ~respondent_id+date_hour)
 
 reg2 <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id + hour + week,
-              pm, cluster = ~respondent_id+date_hour,
-              weights = ~weight_hour)
+              pm, cluster = ~respondent_id+date_hour)
 
 reg3 <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id^hour + week,
-              pm, cluster = ~respondent_id+date_hour,
-              weights = ~weight_hour)
+              pm, cluster = ~respondent_id+date_hour)
 
 reg4 <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id^hour + week,
-              filter(pm, sensor_mindist < 1000), cluster = ~respondent_id+date_hour,
-              weights = ~weight_hour)
+              filter(pm, sensor_mindist < 2000), cluster = ~respondent_id+date_hour)
 
 # reg5: 24-hour aggregate with rhs_fml controls
 # Build 24-hour aggregate dataset (analogous to appendix.R)
@@ -92,8 +77,7 @@ pm_agg24 <-
             pm25_indoor24hr = mean(pm25_indoor, na.rm = TRUE),
             temp_outdoor24hr = mean(temp_outdoor3, na.rm = TRUE),
             humidity_outdoor24hr = mean(humidity_outdoor3, na.rm = TRUE),
-            cooking24hr = mean(cooking, na.rm = TRUE),
-            weight_hour24hr = mean(weight_hour, na.rm = TRUE)) %>%
+            cooking24hr = mean(cooking, na.rm = TRUE)) %>%
   ungroup()
 
 reg5 <- feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr +
@@ -102,8 +86,7 @@ reg5 <- feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr +
                 as.factor(room_pmsource_kitchen) +
                 cooking24hr + dist_primary +
                 temp_outdoor24hr + humidity_outdoor24hr | week,
-              pm_agg24, cluster = ~respondent_id+date,
-              weights = ~weight_hour24hr)
+              pm_agg24, cluster = ~respondent_id+date)
 
 # reg6: 8-hour aggregate with rhs_fml controls
 pm_agg8 <-
@@ -120,8 +103,7 @@ pm_agg8 <-
             pm25_indoor8hr = mean(pm25_indoor, na.rm = TRUE),
             temp_outdoor8hr = mean(temp_outdoor3, na.rm = TRUE),
             humidity_outdoor8hr = mean(humidity_outdoor3, na.rm = TRUE),
-            cooking8hr = mean(cooking, na.rm = TRUE),
-            weight_hour8hr = mean(weight_hour, na.rm = TRUE)) %>%
+            cooking8hr = mean(cooking, na.rm = TRUE)) %>%
   ungroup()
 
 reg6 <- feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr +
@@ -130,15 +112,14 @@ reg6 <- feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr +
                 as.factor(room_pmsource_kitchen) +
                 cooking8hr + dist_primary +
                 temp_outdoor8hr + humidity_outdoor8hr | period + week,
-              pm_agg8, cluster = ~respondent_id+date,
-              weights = ~weight_hour8hr)
+              pm_agg8, cluster = ~respondent_id+date)
 
 us_inf <- .29
 
 p_inf <-
   map2_df(list(reg1, reg2, reg3, reg4, reg6, reg5),
           c("Main, Hour + Week FE", "HH + Hour + Week FE", "HH-Hour + Week FE",
-            "<1km to Outdoor Sensor", "8 Hour Aggregate", "24 Hour Aggregate"),
+            "<2km to Outdoor Sensor", "8 Hour Aggregate", "24 Hour Aggregate"),
           function(x, y){
             tidy(x, conf.int = TRUE) %>%
               dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
@@ -152,7 +133,7 @@ p_inf <-
   mutate(main = if_else(str_detect(model, "Main"), TRUE, FALSE),
          model = str_wrap(model, width = 6),
          model = factor(model, levels = c("Main,\nHour\n+ Week\nFE", "HH +\nHour\n+ Week\nFE",
-                                          "HH-Hour\n+ Week\nFE", "<1km\nto\nOutdoor\nSensor",
+                                          "HH-Hour\n+ Week\nFE", "<2km\nto\nOutdoor\nSensor",
                                           "8 Hour\nAggregate", "24\nHour\nAggregate"))) %>%
   ggplot(aes(x = model, y = estimate)) +
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .39, size = .2) +
@@ -195,7 +176,7 @@ regs_het <-
       paste0("pm25_indoor ~", var, ":pm25_outdoor3+", var, "+ ",
              rhs_controls_str, " | hour + week") %>%
       as.formula() %>%
-      feols(pm, cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+      feols(pm, cluster = ~respondent_id+date_hour)
 
     f_stat <- str_replace_all(test, "house_size|:pm25_outdoor3|income_quartIncome |room_ac|night", "")
     f_stat <- paste0(f_stat, ": ", round(linearHypothesis(r, c(test))$`Pr(>Chisq)`[2], digits = 2))
@@ -217,7 +198,7 @@ r_income_inf <-
   paste0("pm25_indoor ~ income_quart:pm25_outdoor3 + income_quart + ",
          rhs_controls_str, " | hour + week") %>%
   as.formula() %>%
-  feols(pm, cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+  feols(pm, cluster = ~respondent_id+date_hour)
 
 income_inf_test <- "income_quartIncome Bin 1:pm25_outdoor3 = income_quartIncome Bin 4:pm25_outdoor3"
 income_inf_fstat <- paste0("Bin 1 = Bin 4: ",
@@ -263,7 +244,7 @@ reg_window <-
   paste0("pm25_indoor ~ open_room:pm25_outdoor3 + open_room + ",
          rhs_controls_str, " | week") %>%
   as.formula() %>%
-  feols(open_all, cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+  feols(open_all, cluster = ~respondent_id+date_hour)
 
 f_window <- linearHypothesis(reg_window, c("open_roomFALSE:pm25_outdoor3 = open_roomTRUE:pm25_outdoor3 "))$`Pr(>Chisq)`[2]
 
@@ -292,7 +273,7 @@ p_het <-
   facet_grid(~title, scales = "free_x", space = "free_x") +
   scale_color_brewer(palette = "Dark2") +
   ylab("Infiltration Factor") +
-  geom_text(aes(x = 1.75, y = -.1, label = fstat), size = 1.5) +
+  geom_text(aes(x = 1, y = .02, label = fstat), size = 1.4) +
   theme(legend.position = "none") +
   ylim(c(0, 1)) +
   annotate(# Add vertical lines between graphs
@@ -314,7 +295,7 @@ tidy_het <- function(r){
 r_spline <-
   paste0("pm25_indoor ~ splines:pm25_outdoor3 + ", rhs_controls_str, " | hour + week") %>%
   as.formula() %>%
-  feols(pm, cluster = ~respondent_id+date_hour, weights = ~weight_hour) %>%
+  feols(pm, cluster = ~respondent_id+date_hour) %>%
   tidy_het() %>%
   mutate(type = case_when(str_detect(term, ", 30.00") ~ "<30",
                           str_detect(term, "\\[ 30.00") ~ "30-40",
@@ -335,7 +316,7 @@ p_spline <-
 # are households opening their windows in response to outdoor pollution?
 r_open_pm <-
   feols(open_room ~ splines + 0 + as.factor(week), open_all,
-        cluster = ~respondent_id+date_hour, weights = ~weight_hour)
+        cluster = ~respondent_id+date_hour)
 
 p_open_pm <-
   tidy(r_open_pm, conf.int = TRUE) %>%
@@ -365,7 +346,7 @@ pm <-
 p_beliefs <-
   paste0("pm25_indoor ~ beliefs_unhealthy:pm25_outdoor3 + ", rhs_controls_str, " | hour + week") %>%
   as.formula() %>%
-  feols(pm, cluster = ~respondent_id+date_hour, weights = ~weight_hour) %>%
+  feols(pm, cluster = ~respondent_id+date_hour) %>%
   tidy_het() %>%
   mutate(type =if_else(str_detect(term, "FALSE"), "Low AQI", "High AQI"),
          type = factor(type, levels = c("Low AQI", "High AQI"))) %>%

@@ -34,7 +34,7 @@ A general statement, there's a lot of missing data for pm25_indoor. Some hours h
 
 When you have finished it all, please do 2 things:
 
-* Put all figures produced in ANY code file into one latex document. Compile as PDF and show me. 
+* Put all figures produced in ANY code file into one latex document, called all_figures.tex. Compile as PDF and show me. 
 
 * Create another agent to act as an aggressive reviewer of the code, and flag anything that could look dodgy for me to review. 
 

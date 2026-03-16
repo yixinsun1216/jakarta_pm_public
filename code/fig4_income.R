@@ -12,15 +12,6 @@ pm <-
          income_high = hh_income >= 4,
          cooking = replace_na(cooking, 0))
 
-# ------------------------------------------------------------------
-# Inverse-frequency weights: upweight hours with more missing data
-# ------------------------------------------------------------------
-hour_weights <- pm %>%
-  group_by(hour) %>%
-  summarise(prop_observed = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hour = 1 / prop_observed)
-pm <- pm %>% left_join(hour_weights, by = "hour")
-
 # read in survey data
 survey <-
   file.path(ddir, "df_survey.rds") %>%
@@ -107,7 +98,7 @@ p_char_income <-
 # indoor sources -----------
 regs_indoor <-
   list(feols(spike ~ income_quart  + 0 + as.factor(hour), data = pm,
-             cluster = ~respondent_id + date_hour, weights = ~weight_hour) ,
+             cluster = ~respondent_id + date_hour) ,
        feols(trash ~ income_quart + 0, data = survey, cluster = ~respondent_id),
        feols(smoke24_endline ~ income_quart + 0, data = survey, cluster = ~respondent_id))
 tidy_trash <-

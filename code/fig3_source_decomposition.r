@@ -27,16 +27,6 @@ pm <-
   ) %>%
   mutate(cooking = replace_na(cooking, 0))
 
-# ------------------------------------------------------------------
-# Inverse-frequency weights: upweight hours with more missing data
-# ------------------------------------------------------------------
-hour_weights <- pm %>%
-  group_by(hour) %>%
-  summarise(prop_observed = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hour = 1 / prop_observed)
-pm <- pm %>% left_join(hour_weights, by = "hour")
-
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # -------------- Helper functions ----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -116,8 +106,7 @@ rhs_fml_sources <- ~ as.factor(trash_burning_1week_baseline) +
 reg_fe <- feols(
   fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week) ,
   data = pm,
-  cluster = ~ respondent_id + date_hour,
-  weights = ~weight_hour
+  cluster = ~ respondent_id + date_hour
 )
 
 etable(reg_fe)
@@ -140,8 +129,7 @@ reg_lm <- lm(
     cooking +
     dist_primary +
    as.factor(hour) + as.factor(week),
-  data = pm,
-  weights = weight_hour
+  data = pm
 )
 
 output_lmg_tbl <- compute_lmg_tbl(reg_lm)
@@ -181,7 +169,7 @@ output %>%
   knitr::kable(format.args = list(big.mark = ","),
               digits = c(NA, 2, 3, 2, 1, 1), format = "latex",
               booktabs = TRUE, align = "c") %>%
-  kableExtra::kable_styling(full_width = FALSE) %>%
+  #kableExtra::kable_styling(full_width = FALSE) %>%
   writeLines(file.path(gdir, "output/tables/mean_contribution_table.tex"))
 
 
@@ -225,7 +213,7 @@ p_sources_coef <-
   geom_point(size = .8, color = "#1b9e77") +
   xlab(expression(PM[2.5] ~ (mu * g~m^-3))) +
   ylab("Effect of\nHyperlocal\nSource") +
-  annotate("text", x = mean_pm_indoor + 0.3, y = 6.5, label = "mean", size = 1.5, color = "#1b9e77", hjust = 0) +
+  annotate("text", x = mean_pm_indoor + 1, y = 6.5, label = "mean indoor PM2.5", size = 1.5, color = "#1b9e77", hjust = 0) +
   theme_classic() +
   theme(panel.grid = element_blank(),
         axis.line.y = element_blank(),
@@ -289,8 +277,7 @@ reg_decomp_income <- feols(
     temp_outdoor3 + humidity_outdoor3 |
     hour + week,
   data = pm,
-  cluster = ~respondent_id + date_hour,
-  weights = ~weight_hour
+  cluster = ~respondent_id + date_hour
 )
 
 # Extract income-quartile-specific contributions
@@ -329,7 +316,7 @@ decomp_by_income_tokeep <-
 
 r_indoor <-
   feols(pm25_indoor ~ income_quart + 0, data = pm,
-        cluster = ~respondent_id+date_hour, weights = ~weight_hour) %>%
+        cluster = ~respondent_id+date_hour) %>%
   tidy(conf.int = TRUE) %>%
   dplyr::rename(income_quart = term) %>%
   mutate(income_quart = str_remove(income_quart, "income_quart"))
