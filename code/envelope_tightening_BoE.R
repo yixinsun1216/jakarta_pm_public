@@ -107,37 +107,184 @@ data_summ = data_summ %>%
 
 
 # MAKE TABLE WITH PARAMETERS ---------------------------------------------------
-top <- c("\\centering", 
-         "\\newcolumntype{c}{>{\\centering\\arraybackslash}X}",
-         "\\footnotesize",
-         "\\begin{tabularx}{\\linewidth}{lcc}",
-         "\\toprule",
-         "\\tabularnewline",
-         "Variable & \\multicolumn{2}{Bottom Income Quartile} & \\multicolumn{2}{Top Income Quartile} \\\\",
-         " & Smokers & Non-Smokers & Smokers & Non-Smokers \\tabularnewline",
-         "\\midrule \\addlinespace[\\belowrulesep]")
+# =============================================================================
+# Generate back-of-envelope PM2.5 LaTeX table body from data_summ
+# =============================================================================
+# Outputs ONLY the \begin{tabular}...\end{tabular} block plus the notes
+# minipage. The \begin{table}, \caption, \label, \resizebox etc. are all
+# handled in Overleaf (see table_boe_wrapper.tex).
+# =============================================================================
 
+library(dplyr)
 
-table_tex <- top
-table_tex <- append(table_tex, "\\textit{\\textbf{Panel A: Estimated Elasticities and Quantities from Our Data}} & \\\\")
-table_tex <- append(table_tex,  paste(" Average  C$_{in}$ & ", paste(round(data_summ$Cin), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" Average C$_{out}$ & ", paste(round(data_summ$Cout), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" Estimated F$_{inf}$ & ", paste(round(data_summ$Finf, 3), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  "\\hline")
-table_tex <- append(table_tex, "\\textit{\\textbf{Panel B: External Parameters}} & \\\\")
-table_tex <- append(table_tex,  paste(" k ", paste(round(data_summ$k, 2), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" P (baseline) ", paste(round(data_summ$P, 2), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" P (ventilation) ", paste(round(data_summ$P_vent, 2), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" a (baseline) ", paste(round(data_summ$a, 2), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" a (weatherization) ", paste(round(data_summ$a_weather20, 2), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  "\\hline")
-table_tex <- append(table_tex, "\\textit{\\textbf{Panel C: Results}} & \\\\")
-table_tex <- append(table_tex,  paste(" C$_{in}$ (weatherization) ", paste(round(data_summ$Cin_weather20), collapse=" & "), "\\\\", sep=""))
-table_tex <- append(table_tex,  paste(" C$_{in}$ (ventilation) ", paste(round(data_summ$Cin_vent), collapse=" & "), "\\\\", sep=""))
+# ---- helpers ----------------------------------------------------------------
+fmt1  <- function(x) formatC(round(x, 1), format = "f", digits = 1)
+fmt3  <- function(x) formatC(round(x, 3), format = "f", digits = 3)
 
-bottom <- c("\\bottomrule \\end{tabularx}")
+fmt1s <- function(x) {
+  ifelse(x >= 0,
+         paste0("$+", fmt1(x), "$"),
+         paste0("$",  fmt1(x), "$"))
+}
 
+robustness_range <- function(row) {
+  pmin_invalid <- row$P_min < row$Finf
+  if (pmin_invalid) {
+    valid_diffs <- c(row$Cin_diff_weather20_Pmax_kmin,
+                     row$Cin_diff_weather20_Pmax_kmax)
+    dagger <- "\\textsuperscript{\\dag}"
+  } else {
+    valid_diffs <- c(row$Cin_diff_weather20_Pmin_kmin,
+                     row$Cin_diff_weather20_Pmin_kmax,
+                     row$Cin_diff_weather20_Pmax_kmin,
+                     row$Cin_diff_weather20_Pmax_kmax)
+    dagger <- ""
+  }
+  lo <- min(valid_diffs)
+  hi <- max(valid_diffs)
+  paste0("[", fmt1s(lo), ",\\;", fmt1s(hi), "]", dagger)
+}
 
+# ---- row builders -----------------------------------------------------------
+panel_a_row <- function(row) {
+  paste(
+    row$row_label,
+    fmt1(row$Cin),
+    fmt1(row$Cout),
+    fmt3(row$Finf),
+    fmt1(row$a),
+    fmt1(row$S),
+    sep = " & "
+  ) |> paste0(" \\\\")
+}
 
-table_tex <- append(table_tex, bottom)
-write(table_tex,file.path(gdir, "output/tables/BoE_envelopetightening.tex"))
+panel_b_row <- function(row) {
+  delta_w <- row$Cin_weather20 - row$Cin
+  delta_v <- row$Cin_vent      - row$Cin
+  paste(
+    row$row_label,
+    fmt1s(delta_w),
+    robustness_range(row),
+    fmt1s(delta_v),
+    "Always $\\downarrow$",
+    sep = " & "
+  ) |> paste0(" \\\\")
+}
+
+panel_a_body <- sapply(seq_len(nrow(data_summ)),
+                       function(i) panel_a_row(as.list(data_summ[i, ]))) |>
+  paste(collapse = "\n")
+
+panel_b_body <- sapply(seq_len(nrow(data_summ)),
+                       function(i) panel_b_row(as.list(data_summ[i, ]))) |>
+  paste(collapse = "\n")
+
+# ---- parameter values for notes --------------------------------------------
+k_central <- data_summ$k[1]
+P_central <- data_summ$P[1]
+k_min_val <- data_summ$k_min[1]
+k_max_val <- data_summ$k_max[1]
+P_min_val <- data_summ$P_min[1]
+P_max_val <- data_summ$P_max[1]
+
+needs_dagger     <- any(data_summ$P_min < data_summ$Finf)
+dagger_bin_label <- data_summ |>
+  filter(P_min < Finf) |>
+  pull(row_label) |>
+  gsub(",.*", "", x = _) |>
+  unique() |>
+  paste(collapse = " and ")
+
+dagger_note <- if (needs_dagger) {
+  paste0(
+    "\n\\smallskip\n",
+    "\\textsuperscript{\\dag}~For ", dagger_bin_label,
+    " ($\\hat{F}_{inf} > ", fmt1(P_min_val), "$), ",
+    "$P_{\\min} = ", fmt1(P_min_val), " < \\hat{F}_{inf}$, ",
+    "which would imply a non-positive air exchange rate and is therefore excluded; ",
+    "the robustness range for these groups varies only $k$, holding $P = ",
+    fmt1(P_max_val), "$."
+  )
+} else {
+  ""
+}
+
+# =============================================================================
+# Assemble: tabular body + notes only (no \begin{table} wrapper)
+# =============================================================================
+
+lines <- c(
+  "% -----------------------------------------------------------------------",
+  "% Auto-generated by table_boe.R -- do not edit by hand",
+  "% -----------------------------------------------------------------------",
+  "",
+  "\\begin{tabular}{lcccccc}",
+  "\\toprule",
+  "%---- Panel A -------------------------------------------------------",
+  "\\multicolumn{7}{l}{\\textbf{Panel A. Data inputs and derived parameters}} \\\\[2pt]",
+  "  & $C_{in}$",
+  "  & $C_{out}$",
+  "  & $\\hat{F}_{inf}$",
+  "  & $a$",
+  "  & $S$",
+  "  \\\\",
+  "  & ($\\mu$g\\,m$^{-3}$)",
+  "  & ($\\mu$g\\,m$^{-3}$)",
+  "  &",
+  "  & (h$^{-1}$)",
+  "  & ($\\mu$g\\,m$^{-3}$\\,h$^{-1}$)",
+  "  \\\\",
+  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-4}\\cmidrule(lr){5-6}",
+  panel_a_body,
+  "\\midrule",
+  "%---- Panel B -------------------------------------------------------",
+  "\\multicolumn{7}{l}{\\textbf{Panel B. Counterfactual $\\Delta C_{in}$ ($\\mu$g\\,m$^{-3}$)}} \\\\[2pt]",
+  "  &",
+  "  \\multicolumn{2}{c}{Weatherization ($a \\times 0.8$)}",
+  "  &",
+  "  \\multicolumn{2}{c}{Ventilation ($P \\times 0.5$)}",
+  "  & \\\\",
+  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+  "  & Central",
+  "  & Robust.~range\\textsuperscript{(a)}",
+  "  & Central",
+  "  & Direction",
+  "  & \\\\",
+  "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
+  panel_b_body,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "",
+  "%---- Notes (minipage so footnotes stay attached to table) ----------",
+  "\\begin{minipage}{\\linewidth}",
+  "\\footnotesize",
+  "\\textit{Notes.}",
+  "$C_{in}$ and $C_{out}$ are mean observed indoor and outdoor PM$_{2.5}$ concentrations",
+  "($\\mu$g\\,m$^{-3}$).",
+  "$\\hat{F}_{inf}$ is the estimated infiltration factor from regression (see main text).",
+  "The air exchange rate $a$ and indoor source strength $S$ are derived from $\\hat{F}_{inf}$,",
+  "$C_{in}$, $C_{out}$ using Equations~(2)--(4), at the central parameter values",
+  paste0("$k = ", fmt1(k_central), "$ h$^{-1}$ and $P = ", fmt1(P_central), "$."),
+  "For the weatherization scenario, $a$ is reduced by 20\\% and",
+  "$C_{in}$ is recalculated holding $S$, $k$, and $P$ fixed.",
+  "For the ventilation scenario, $P$ is halved and $C_{in}$ is recalculated",
+  "holding $S$, $k$, and $a$ fixed; this intervention mechanically reduces",
+  "$C_{in}$ regardless of the level of indoor sources.",
+  "",
+  "\\smallskip",
+  paste0(
+    "\\textsuperscript{(a)}~Robustness range for the weatherization scenario spans ",
+    "$k \\in \\{", fmt1(k_min_val), ",\\,", fmt1(k_max_val), "\\}$\\,h$^{-1}$ and ",
+    "$P \\in \\{", fmt1(P_min_val), ",\\,", fmt1(P_max_val), "\\}$ where feasible.",
+    dagger_note
+  ),
+  "\\end{minipage}"
+)
+
+# =============================================================================
+# Write output
+# =============================================================================
+
+output_path <- file.path(gdir, "output/tables/si_table_boe.tex")
+writeLines(lines, output_path)
+message("Written: ", output_path)

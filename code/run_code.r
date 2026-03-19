@@ -1,6 +1,6 @@
 pacman::p_load(
   tidyverse, lubridate, sf, patchwork, ggthemes, ggmap, scales,
-  fixest, broom, knitr, kableExtra, car, relaimpo, latex2exp, Hmisc)
+  fixest, broom, knitr, kableExtra, car, relaimpo, latex2exp, Hmisc, dplyr)
 
 
 if(Sys.getenv("USER") == "yixinsun1"){
