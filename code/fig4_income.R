@@ -86,7 +86,8 @@ p_char_income <-
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
         axis.title.y = element_blank(),
-        strip.text= element_text(size = 5),
+        strip.text= element_text(size = 5, vjust = 5, hjust = 0, margin = margin(l = -10)),
+        strip.clip = "off",
         strip.background = element_blank(),
         panel.grid= element_blank(),
         panel.spacing = unit(.5, "cm"),
@@ -130,7 +131,8 @@ p_hyperlocal_income <-
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
-        strip.text= element_text(size = 5),
+        strip.text= element_text(size = 5, vjust = 5, hjust = 0, margin = margin(l = -10)),
+        strip.clip = "off", 
         strip.background = element_blank(),
         panel.grid= element_blank(),
         panel.background = element_rect(fill = "transparent", colour = NA),
@@ -139,7 +141,7 @@ p_hyperlocal_income <-
 
 
 # =========================================================================
-# Pane c: Income heterogeneity in infiltration rate (saved from fig2)
+# Income heterogeneity in infiltration rate (saved from fig2)
 # =========================================================================
 income_inf_tidy <- read_rds(file.path(ddir, "income_infiltration.rds"))
 
@@ -182,4 +184,4 @@ p_income_inf <-
         plot.tag = element_text(size = 6, face = "bold"))
 
 ggsave(file.path(gdir, "output/figures/fig4_pm_income.png"),
-       width = 15, height= 12, bg = "transparent", units = "cm")
+       width = 16, height= 12, bg = "transparent", units = "cm")

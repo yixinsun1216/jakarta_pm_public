@@ -360,7 +360,7 @@ p_beliefs <-
   theme(axis.title.x = element_text(size = 5)) ; p_beliefs
 
 p_behaviors <-
-  wrap_elements((p_spline + p_beliefs + p_open_pm) + plot_layout(width = c(2, 1, 2))) ; p_behaviors
+  wrap_elements((p_spline + p_open_pm + p_beliefs) + plot_layout(width = c(2, 2, 1))) ; p_behaviors
  # plot_annotation(tag_levels = "a", tag_suffix = ".") &
 
 

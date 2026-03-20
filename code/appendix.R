@@ -330,107 +330,6 @@ p_lags <-
 ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm")
 
 
-# =========================================================================
-# Infiltration at different levels of aggregation
-# =========================================================================
-# show main results
-reg_main <-
-  paste0("pm25_indoor~pm25_outdoor3+temp_outdoor3 + humidity_outdoor3 |", fes) %>%
-  map(~feols(as.formula(.x), data = pm, cluster= ~respondent_id+date_hour)) %>%
-  append(list(feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 | respondent_id^hour + week,
-                    data = filter(pm, sensor_mindist < 1000), cluster = ~respondent_id+date_hour)))
-
-tidy_main <-
-  map2_df(reg_main,  c("Hour +\nWeek FE", "HH + Hour\n+ Week FE", "HH^Hour\n+ Week FE", "<1km to\nOutdoor\nSensor"),
-    ~tidy_up(.x) %>% mutate(reg = .y, type = "Main, 1 hour"))
-
-# aggregate to 8 hour chunks
-pm_agg8 <-
-  pm %>%
-  mutate(pm25_outdoor3_matchmissing = if_else(is.na(pm25_indoor), NA_real_, pm25_outdoor3),
-    # split day up into 8 hour chunks
-    period = case_when(hour(date_hour) %in% c(22, 23, 0:5) ~ "Night",
-                       hour(date_hour) %in% 6:14 ~ "Daytime",
-                       TRUE ~ "Afternoon"),
-    date = date_hour) %>%
-  group_by(respondent_id, date, period, week, sensor_mindist) %>%
-  summarise(pm25_outdoor8hr = mean(pm25_outdoor3, na.rm = TRUE),
-            pm25_outdoor_matchmissing8hr = mean(pm25_outdoor3_matchmissing, na.rm = TRUE),
-         pm25_indoor8hr = mean(pm25_indoor, na.rm = TRUE),
-         temp_outdoor8hr = mean(temp_outdoor3, na.rm = TRUE),
-         humidity_outdoor8hr = mean(humidity_outdoor3, na.rm = TRUE)) %>%
- ungroup()
-
-reg_8hours <-
-  list(feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | period + week,
-            data = pm_agg8, cluster = ~respondent_id+date8hr),
-       feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | period + respondent_id+ week,
-            data = pm_agg8, cluster = ~respondent_id+date8hr),
-       feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | respondent_id^period + week,
-            data = pm_agg8, cluster = ~respondent_id+date8hr),
-       feols(pm25_indoor8hr ~ pm25_outdoor_matchmissing8hr + temp_outdoor8hr + humidity_outdoor8hr | respondent_id^period + week,
-            data = filter(pm_agg8, sensor_mindist < 1000), cluster = ~respondent_id+date8hr))
-
-tidy_8hours <-
-  map2_df(reg_8hours, c("Period +\nWeek FE", "HH + Period\n+ Week FE", "HH^Period\n+ Week FE", "<1km to\nOutdoor\nSensor"),
-    ~tidy_up(.x) %>% mutate(reg = .y, type = "8 hours"))
-
-
-# 24 hour averages ----------------------------
-pm_agg24 <-
-  pm %>%
-  mutate(pm25_outdoor3_matchmissing = if_else(is.na(pm25_indoor), NA_real_, pm25_outdoor3),
-    date = as.Date(date_hour)) %>%
-  arrange(date_hour) %>%
-  group_by(respondent_id, date, week, sensor_mindist) %>%
-  summarise(pm25_outdoor24hr = mean(pm25_outdoor3, na.rm = TRUE),
-            pm25_outdoor_matchmissing24hr = mean(pm25_outdoor3_matchmissing, na.rm = TRUE),
-         pm25_indoor24hr = mean(pm25_indoor, na.rm = TRUE),
-         temp_outdoor24hr = mean(temp_outdoor3, na.rm = TRUE),
-         humidity_outdoor24hr = mean(humidity_outdoor3, na.rm = TRUE)) %>%
- ungroup()
-
-reg_24hours <-
-  list(feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | week,
-            data = pm_agg24, cluster = ~respondent_id+date24hr),
-       feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | respondent_id + week,
-            data = pm_agg24, cluster = ~respondent_id+date24hr),
-       feols(pm25_indoor24hr ~ pm25_outdoor_matchmissing24hr + temp_outdoor24hr + humidity_outdoor24hr | respondent_id + week,
-            data = filter(pm_agg24, sensor_mindist < 1000), cluster = ~respondent_id+date24hr))
-
-tidy_24hours <-
-  map2_df(reg_24hours, c("Week FE", "HH + Week FE", "<1km to\nOutdoor\nSensor"),
-    ~tidy_up(.x) %>% mutate(reg = .y, type = "24 hours"))
-
-
-bind_rows(tidy_main, tidy_8hours, tidy_24hours) %>%
-  filter(str_detect(term, "pm25")) %>%
-   mutate(reg = factor(reg, levels = c("Hour +\nWeek FE", "HH + Hour\n+ Week FE", "HH^Hour\n+ Week FE",
-                                       "Period +\nWeek FE", "HH + Period\n+ Week FE", "HH^Period\n+ Week FE",
-                                       "Week FE", "HH + Week FE", "<1km to\nOutdoor\nSensor")),
-          type = factor(type, levels = c("Main, 1 hour", "8 hours", "24 hours")))  %>%
-  ggplot(aes(x = reg, y = estimate, fill = type, color = type)) +
-  facet_wrap(~type, scales = "free_x") +
-  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .2) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2) +
-  geom_point(size = .5) +
-  theme_classic() +
-  ylab("Infiltration Factor") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_y_continuous(limits = c(0, 1.2), expand = c(0, 0)) +
-  theme(axis.line = element_line(size = .1),
-        axis.ticks = element_line(size = .1),
-        panel.background = element_rect(fill = "transparent", colour = NA),
-        plot.background = element_rect(fill = "transparent", colour = NA),
-        panel.grid.major.y = element_line(size = .1, color = "gray80"),
-
-        text = element_text(size = 6),
-        legend.position = "none",
-        strip.text = element_text(size = 7),
-        strip.background = element_blank(),
-        )
-ggsave(file.path(gdir, "output/figures/inf_aggregation.png"), width = 14, height= 6, bg = "transparent", units = "cm")
-
 # ===================================================================
 # is reported waste burning correlated with higher outdoor pollution
 # ===================================================================
@@ -468,74 +367,14 @@ pm %>%
   stat_ecdf() +
   scale_color_brewer(palette = "Dark2") +
   theme_classic() +
-  theme(legend.position = "bottom",
+  theme(legend.position = c(0.8, 0.2), legend.title = element_blank(), legend.text = element_text(size = 10), 
+         panel.background = element_rect(fill = "transparent", colour = NA),
+         plot.background = element_rect(fill = "transparent", colour = NA),
         text = element_text(size = 15)) +
   xlab("Distance (meters)")
 ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.png"),
     width = 15, height= 10, bg = "transparent", units = "cm")
 
-
-# =========================================================================
-# find pairwise correlations between sensors
-# =========================================================================
-df_sensors <-
-  st_read(file.path(ddir, "sensor_locations/sensor_locations.shp")) %>%
-  filter(n3 == 1, name != "Muara Karang")
-
-# find parwise combination of names of sensors
-pairs <-
-  combn(df_sensors$name,2) %>%
-  t() %>%
-  as_tibble() %>%
-  setNames(c("sensor1", "sensor2"))
-
-# find distance between pairs
-pairs_dist <-
-  pairs %>%
-  left_join(dplyr::select(df_sensors, sensor1 = name, geometry1 = geometry)) %>%
-  left_join(dplyr::select(df_sensors, sensor2 = name, geometry2 = geometry)) %>%
-  mutate(dist = as.numeric(st_distance(geometry1, geometry2, by_element = TRUE)))
-
-# -----------------------------------------------------
-# for each pair, calculate R2 between the sensor data
-# -----------------------------------------------------
-pm_sensors <-
-  read_rds(file.path(ddir, "pm_outdoor_bysensor.rds")) %>%
-  filter(measure == "pm25") %>%
-  dplyr::select(-measure) %>%
-  mutate(value = if_else(value <= 1, NA_real_, value)) %>%
-  dplyr::select(sensor_name, date_hour, value)  %>%
-  distinct(sensor_name, date_hour, .keep_all = TRUE)
-
-sensors_r2 <-
-  pmap(pairs, list) %>%
-  map_dbl(function(x){
-    df_r2 <-
-      filter(pm_sensors, sensor_name %in% c(x$sensor1, x$sensor2)) %>%
-      mutate(value = log(value)) %>%
-      pivot_wider(id_cols = "date_hour", names_from = "sensor_name", values_from = "value") %>%
-      janitor::clean_names()
-    f <- paste0(colnames(df_r2)[2], "~", colnames(df_r2)[3])
-
-    r2 <- summary(lm(as.formula(f), df_r2))$r.squared
-  })
-
-pairs_dist <-
-  pairs_dist %>%
-  mutate(r2 = as.numeric(sensors_r2))
-
-# correlation of log transformations
-# plot correlation between two sensors as a function of the distance between the sensors
- ggplot(pairs_dist, aes(x = dist / 1000, y = r2)) +
-  xlab("pairwise distance (km)") +
-  ylab(expression(R^2)) +
-  geom_point(color = "gray40", alpha = .5) +
-  stat_summary_bin(geom="line", size = 1)+
-  theme_linedraw() +
-  scale_fill_gradient2(high = "darkgreen")  +
-  theme(axis.title.y=element_text(angle=0, vjust = .5), text = element_text(size = 24)) +
-  ylim(0, 1)
-ggsave(file.path(gdir, "output/figures/sensor_correlations.png"), width = 13, height= 8)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -795,15 +634,33 @@ reg_w3 <- feols(fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week),
                 data = pm_weights, cluster = ~respondent_id + date_hour,
                 weights = ~weight_hh_hour)
 
-etable(reg_w1, reg_w2, reg_w3,
-       headers = c("Hour Weights", "HH Weights", "HH-Hour Weights"),
-       keep = "Outdoor",
-       dict = c("pm25_outdoor3" = "Outdoor PM2.5 (Infiltration Rate)"),
-       fitstat = c("n", "r2"),
-       tex = TRUE, replace = TRUE,
-       title = "Infiltration Rate Under Alternative Weighting Schemes",
-       file = file.path(gdir, "output/tables/infiltration_weights_robustness.tex"))
-strip_etable_notes(file.path(gdir, "output/tables/infiltration_weights_robustness.tex"))
+
+p_weight_robust <-
+  map2_df(list(reg_w1, reg_w2, reg_w3), c("Hour Weights", "HH Weights", "HH-Hour Weights"), function(x, y) {
+    tidy(x, conf.int = TRUE) %>%
+      dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
+      mutate(model = y) %>%
+      left_join(tidy(x, conf.int = TRUE, conf.level = .9))
+  }) %>%
+  filter(str_detect(term, "pm25_outdoor3")) %>%
+  mutate(model = factor(model, levels = c("Hour Weights", "HH Weights", "HH-Hour Weights"))) %>%
+  ggplot(aes(x = model, y = estimate)) +
+  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .2) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0, size = .2) +
+  geom_point(size = .5) +
+  ylab("Infiltration Factor") +
+  xlab("Weighting scheme") +
+  scale_y_continuous(limits = c(0, 1.1), breaks = c(0.25, 0.5, 0.75, 1)) +
+  theme_classic() +
+  theme(axis.title = element_text(size = 6),
+        axis.text = element_text(size = 5),
+        axis.line = element_line(size = .1),
+        axis.ticks = element_line(size = .1),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA)); p_weight_robust
+
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_weight.png"),
+       width = 8, height = 6, bg = "transparent", units = "cm")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -878,7 +735,7 @@ data_summ = survey %>%
 
 data_summ = data_summ %>%
   dplyr::mutate(Finf =ifelse(grepl("Income Bin 1", row_label), 0.7775, ifelse(grepl("Income Bin 4", row_label), 0.5141, NA)))
-setnames(data_summ, old=c("pm25_mean", "pm25outdoor_mean"), new=c("Cin", "Cout"))
+data.table::setnames(data_summ, old=c("pm25_mean", "pm25outdoor_mean"), new=c("Cin", "Cout"))
 
 data_summ$k = 0.5
 data_summ$P = 1.0

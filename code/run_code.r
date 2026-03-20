@@ -1,4 +1,4 @@
-pacman::p_load(
+pacman::p_load(setnames,
   tidyverse, lubridate, sf, patchwork, ggthemes, ggmap, scales,
   fixest, broom, knitr, kableExtra, car, relaimpo, latex2exp, Hmisc)
 
@@ -18,8 +18,8 @@ ls_extra <- function(){
   ls()[!ls() %in% c("ddir", "gdir")]
 }
 
-# rhs_fml <- ~ as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline) + as.factor(room_pmsource_kitchen) + pm25_outdoor3 + cooking +  dist_primary + temp_outdoor3 + humidity_outdoor3
-# stop()
+rhs_fml <- ~ as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline) + as.factor(room_pmsource_kitchen) + pm25_outdoor3 + cooking +  dist_primary + temp_outdoor3 + humidity_outdoor3
+
 source(file.path(gdir, "code/fig1_desc.R"))
 print("Figure 1 finished")
 
