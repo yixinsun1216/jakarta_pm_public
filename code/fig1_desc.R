@@ -41,7 +41,7 @@ data_locations <-
   mutate(type = factor(type, levels = c("Outdoor Sensor", "Indoor HH Monitor")))
 
 # get a nice background for the maps - need to register stadia API
-register_stadiamaps("44c45f7e-fc84-46ec-9f3e-60444545e954", write = TRUE)
+register_stadiamaps("44c45f7e-fc84-46ec-9f3e-60444545e954", write = FALSE)
 sensor_bbox <- st_bbox(st_buffer(data_locations, 100))
 names(sensor_bbox) <- c("left", "bottom", "right", "top")
 background <- get_stadiamap(sensor_bbox, zoom = 12, maptype = "alidade_smooth") 
@@ -137,8 +137,8 @@ p_indoor_week <-
         axis.line.y = element_blank()) + 
   facet_wrap(~"Indoor") + 
   # geom_hline(aes(yintercept = 5), linetype = "dashed", color= "gray30", size = .1) +
-  geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
-  geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
+  # geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
+  # geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
   annotate("text", x = ymd_h("20240731 01"), y =50, label = "Mean", size = 1.5, color = "darkred") 
 
 
@@ -169,12 +169,12 @@ p_outdoor_week <-
         # panel.spacing.x = unit(1, "cm")) + 
         # strip.background =element_blank(), 
        # plot.margin = margin(1, 1, 1, 1.01, "cm")) + 
-  geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
-  annotate("text", x = ymd_h("20240812 10"), y =270, label = "US EPA - Hazardous", color = "tomato4", 
-           size = 1.5) +
-  geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
-  annotate("text", x = ymd_h("20240812 10"), y =140, label = "US EPA - Very Unhealthy", color = "deeppink4", 
-           size = 1.5) +
+  # geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
+  # annotate("text", x = ymd_h("20240812 10"), y =270, label = "US EPA - Hazardous", color = "tomato4", 
+  #         size = 1.5) +
+  # geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
+  # annotate("text", x = ymd_h("20240812 10"), y =140, label = "US EPA - Very Unhealthy", color = "deeppink4", 
+  #          size = 1.5) +
   coord_cartesian(xlim = c(ymd_h("20240801 01"), ymd_h("20240814 23")), clip = 'off') +
   facet_wrap(~"Ambient Outdoor")
 
