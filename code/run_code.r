@@ -6,7 +6,7 @@ pacman::p_load(
 if(Sys.getenv("USER") == "yixinsun1"){
   gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm_public")
 } else if(Sys.getenv("USER") == "jeannesorin"){
-  gdir <- file.path("/Users/jeannesorin/github/jakarta_pm_public")
+  gdir <- file.path("~/Library/CloudStorage/Dropbox/github/jakarta_pm_public")
 } else if(Sys.getenv("USER") == "yixin.sun"){
   gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm_public")
 }
@@ -18,8 +18,8 @@ ls_extra <- function(){
   ls()[!ls() %in% c("ddir", "gdir")]
 }
 
-rhs_fml <- ~ as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline) + as.factor(room_pmsource_kitchen) + pm25_outdoor3 + cooking +  dist_primary + temp_outdoor3 + humidity_outdoor3
-stop()
+# rhs_fml <- ~ as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline) + as.factor(room_pmsource_kitchen) + pm25_outdoor3 + cooking +  dist_primary + temp_outdoor3 + humidity_outdoor3
+# stop()
 source(file.path(gdir, "code/fig1_desc.R"))
 print("Figure 1 finished")
 
