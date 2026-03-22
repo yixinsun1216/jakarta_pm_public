@@ -4,27 +4,29 @@
 \begin{tabular}{lcc}
    \tabularnewline \midrule \midrule
    Dependent Variable: & \multicolumn{2}{c}{Outdoor PM2.5}\\
-                            & Closest 3 Sensors & HH Within 2km of Outdoor Sensor \\   
-   Model:                   & (1)               & (2)\\  
+                                                       & Closest 3 Sensors & HH Within 2km of Outdoor Sensor \\   
+   Model:                                              & (1)               & (2)\\  
    \midrule
    \emph{Variables}\\
-   Waste Burning (1-2/week) & 0.613             & 0.298\\   
-                            & (0.761)           & (0.759)\\   
-   Waste Burning (2+/week)  & 3.89$^{***}$      & 5.60$^{***}$\\   
-                            & (1.06)            & (1.98)\\   
-   Outdoor Temperature      & 0.325             & 0.757$^{***}$\\   
-                            & (0.271)           & (0.277)\\   
-   Outdoor Humidity         & -0.205$^{***}$    & -0.199$^{***}$\\   
-                            & (0.043)           & (0.051)\\   
+   trash\_burning\_1week\_baseline::                   & 2.70$^{***}$      &   \\   
+                                                       & (0.427)           &   \\   
+   trash\_burning\_1week\_baseline $=$ 1or2times       & 0.899             & 0.410\\   
+                                                       & (0.770)           & (0.734)\\   
+   trash\_burning\_1week\_baseline $=$ 3ormoretimes    & 3.65$^{***}$      & 5.25$^{***}$\\   
+                                                       & (0.991)           & (1.79)\\   
+   Outdoor Temperature                                 & -0.382            & 0.144\\   
+                                                       & (0.243)           & (0.255)\\   
+   Outdoor Humidity                                    & -0.194$^{***}$    & -0.180$^{***}$\\   
+                                                       & (0.042)           & (0.048)\\   
    \midrule
    \emph{Fixed-effects}\\
-   Week FE                  & Yes               & Yes\\  
-   Hour FE                  & Yes               & Yes\\  
+   Week FE                                             & Yes               & Yes\\  
+   Hour FE                                             & Yes               & Yes\\  
    \midrule
    \emph{Fit statistics}\\
-   Observations             & 449,568           & 230,234\\  
-   R$^2$                    & 0.34707           & 0.33713\\  
-   Within R$^2$             & 0.01302           & 0.02097\\  
+   Observations                                        & 826,602           & 423,691\\  
+   R$^2$                                               & 0.38585           & 0.37707\\  
+   Within R$^2$                                        & 0.00944           & 0.01310\\  
    \midrule \midrule
    \multicolumn{3}{l}{\emph{Clustered (respondent\_id \& date\_hour) standard-errors in parentheses}}\\
    \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\

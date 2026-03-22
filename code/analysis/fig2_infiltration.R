@@ -192,39 +192,15 @@ regs_het <-
 
 
 # ------------------------------------------------------------------
-# Income infiltration rate (saved separately for fig4)
+ # heterogeneity
 # ------------------------------------------------------------------
-r_income_inf <-
-  paste0("pm25_indoor ~ income_quart:pm25_outdoor3 + income_quart + ",
-         rhs_controls_str, " | hour + week") %>%
-  as.formula() %>%
-  feols(pm, cluster = ~respondent_id+date_hour)
-
-income_inf_test <- "income_quartIncome Bin 1:pm25_outdoor3 = income_quartIncome Bin 4:pm25_outdoor3"
-income_inf_fstat <- paste0("Bin 1 = Bin 4: ",
-                           round(linearHypothesis(r_income_inf, c(income_inf_test))$`Pr(>Chisq)`[2], digits = 2))
-
-income_inf_tidy <-
-  tidy(r_income_inf, conf.int = TRUE) %>%
-  dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
-  left_join((tidy(r_income_inf, conf.int = TRUE, conf.level = .9))) %>%
-  filter(str_detect(term, "pm25")) %>%
-  mutate(fstat = income_inf_fstat,
-         type = str_replace_all(term, "income_quartIncome |:pm25_outdoor3", ""),
-         title = "Income")
-
-write_rds(income_inf_tidy, file.path(ddir, "income_infiltration.rds"))
-
-
 # combine with open window/door -------------------------------
 # use whatsapp survey on opening of windows
 # read in whatsapp data and merge in with pm_data
 whatsapp_open <-
-  read_rds(file.path(ddir, "df_whatsapp.rds")) %>%
-  filter(!is.na(open_window)) %>%
-  dplyr::select(respondent_id, date_hour, type, contains("open")) %>%
-  mutate(open_room_behavior = open_room == "Ya" | open_door == "Ya",
-         open_room_behavior = if_else(str_detect(open_window, "Tak ada") & str_detect(open_door, "Tak ada|Tiada pintu"), NA_real_, open_room_behavior))
+  read_csv(file.path(ddir, "raw_data/whatsapp_survey.csv")) %>%
+  mutate(open_room = open_window == "Ya" | open_door == "Ya") %>%
+  dplyr::select(respondent_id, open_room, date_hour)
 
 # combine whatsapp data with endline survey data
 endline_open <-
@@ -235,16 +211,14 @@ endline_open <-
 
 open_all <-
   bind_rows(whatsapp_open, endline_open) %>%
-  left_join(pm) %>%
-  filter(treatment_status == "Fan")
-
+  left_join(pm, by = c("respondent_id", "date_hour")) 
 
 # big relationship between opening windows and infiltration rate
 reg_window <-
   paste0("pm25_indoor ~ open_room:pm25_outdoor3 + open_room + ",
          rhs_controls_str, " | week") %>%
   as.formula() %>%
-  feols(open_all, cluster = ~respondent_id+date_hour)
+  feols(open_all, cluster = ~respondent_id+date_hour); etable(reg_window, keep = "open")
 
 f_window <- linearHypothesis(reg_window, c("open_roomFALSE:pm25_outdoor3 = open_roomTRUE:pm25_outdoor3 "))$`Pr(>Chisq)`[2]
 
@@ -282,7 +256,7 @@ p_het <-
 
 
 # ==========================================================================
-# 2d. check whether short-term adaptive behaviors are correlated with income
+# 2d. check whether households are taking short-term adaptive behaviors 
 # ==========================================================================
 tidy_het <- function(r){
   tidy(r, conf.int = TRUE) %>%
@@ -293,7 +267,7 @@ tidy_het <- function(r){
 
 # are households responding to outdoor pollution?
 r_spline <-
-  paste0("pm25_indoor ~ splines:pm25_outdoor3 + ", rhs_controls_str, " | hour + week") %>%
+  paste0("pm25_indoor ~ splines:pm25_outdoor3 + splines +", rhs_controls_str, " | hour + week") %>%
   as.formula() %>%
   feols(pm, cluster = ~respondent_id+date_hour) %>%
   tidy_het() %>%
@@ -309,7 +283,7 @@ p_spline <-
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2, color = "#d95f02") +
   geom_point(size = .5, color = "#d95f02") +
   ylab("Infiltration Factor") +
-  ylim(c(0, 1.06)) +
+  ylim(c(0, 1.22)) +
   xlab(expression(Outdoor ~PM[2.5] ~ Range~ (mu * g~m^-3))) +
   theme(axis.title.x = element_text(size = 5))  ; p_spline
 
@@ -334,7 +308,7 @@ p_open_pm <-
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0,size = .2, color = "#d95f02") +
   geom_point(size = .5, color = "#d95f02") +
   ylab("Prob(Window is Open)") +
-  ylim(c(0, 1.06)) +
+  ylim(c(0, 1.22)) +
   xlab(expression(Outdoor ~PM[2.5] ~ Range~ (mu * g~m^-3))) +
   theme(axis.title.x = element_text(size = 5))  ; p_open_pm
 
@@ -356,7 +330,7 @@ p_beliefs <-
   geom_point(size = .5, color = "#d95f02") +
   ylab("Infiltration Factor") +
   xlab("Beliefs About Outdoor AQI") +
-  ylim(c(0, 1.06)) +
+  ylim(c(0, 1.22)) +
   theme(axis.title.x = element_text(size = 5)) ; p_beliefs
 
 p_behaviors <-

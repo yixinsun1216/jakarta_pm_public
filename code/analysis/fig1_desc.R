@@ -102,7 +102,8 @@ p_pm_daily <-
   annotate("segment", x = ymd("2024-12-12"), xend = ymd("2024-12-12"),
            y = 79, yend = 80, size = 0.2) +
   annotate("text", x = ymd("2024-10-24"), y = 83, label = "Round 2", size = 1.5) +
-  scale_x_date(date_breaks = "1 month",date_labels = "%b-%d",) +
+  scale_x_date(date_breaks = "1 month",date_labels = "%b-%d", 
+    limits = c(ymd("2024-06-01"), ymd("2024-12-12"))) +
   theme(legend.position = c(.85,.75), 
         #legend.direction = "horizontal",
         legend.key.size = unit(0.2, "cm"),

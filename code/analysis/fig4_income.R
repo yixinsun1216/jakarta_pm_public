@@ -8,7 +8,7 @@ pm <-
   read_rds(file.path(ddir, "df_reg.rds"))  %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor),
-         trash = as.numeric(trash_burning_1week_baseline) > 1,
+         trash = trash_burning_1week_baseline != "Never",
          income_high = hh_income >= 4,
          cooking = replace_na(cooking, 0))
 
@@ -19,21 +19,10 @@ survey <-
   mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline,
          day_of_week = lubridate::wday(starttime_baseline, label = TRUE),
-         trash = as.numeric(trash_burning_1week_baseline) > 1,
+         trash = trash_burning_1week_baseline != "Never",
          open_room = close_door_1hour == 1 | close_window_1hour == 1,
          date_hour = floor_date(starttime, "hour"))
 
-
-# Decomposition of indoor pm for each income quartile
-# created in fig3_decomposition (labels already centered in saved object)
-p_decomp <-
-  read_rds(file.path(ddir, "plot_decomp_by_income.rds")) +
-  scale_y_continuous(expand = c(0,0)) +
-  theme(axis.ticks = element_line(size = .1),
-        legend.position = "none",
-        text = element_text(size = 6),
-        strip.text= element_text(size = 5.5),
-        title = element_text(face = "bold",size = 5)) ; p_decomp
 
 # =========================================================================
 # correlation between income infiltration variables
@@ -140,10 +129,131 @@ p_hyperlocal_income <-
         legend.position = "none") ; p_hyperlocal_income
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Pane d: Income decomposition via interaction approach
+# Single regression with income_quart interacted with all source variables
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+reg_decomp_income <- feols(
+  pm25_indoor ~
+    income_quart + 
+    i(income_quart,pm25_outdoor3) +
+    i(as.factor(trash_burning_1week_baseline), income_quart, ref = "Never") +
+    i(as.factor(smoke24_endline), income_quart, ref = 0) +
+    i(as.factor(room_pmsource_kitchen), income_quart, ref = 0) +
+    i(cooking, income_quart, ref = 0) +
+    i(income_quart, dist_primary) +
+    temp_outdoor3 + humidity_outdoor3 |
+    hour + week,
+  data = pm,
+  cluster = ~respondent_id + date_hour
+)
+
+# Extract income-quartile-specific contributions
+income_quart_levels <- pm %>%
+  filter(!is.na(income_quart)) %>%
+  distinct(income_quart) %>%
+  pull(income_quart) %>%
+  as.character()
+
+coefs_decomp <- coef(reg_decomp_income)
+
+decomp_by_income <-
+  map_df(income_quart_levels, function(iq) {
+    data_iq <- filter(pm, income_quart == iq)
+
+    # outdoor ambient: i(income_quart, pm25_outdoor3) -> "income_quart::<iq>:pm25_outdoor3"
+    outdoor_coef_name <- paste0("income_quart::", iq, ":pm25_outdoor3")
+    beta_outdoor <- unname(coefs_decomp[outdoor_coef_name])
+    mean_outdoor <- mean(data_iq$pm25_outdoor3, na.rm = TRUE)
+
+    # smoking: i(as.factor(smoke24_endline), income_quart, ref = 0) -> "as.factor(smoke24_endline)::1:income_quart::<iq>"
+    smoke_coef_name <- paste0("as.factor(smoke24_endline)::1:income_quart::", iq)
+    beta_smoke <- unname(coefs_decomp[smoke_coef_name])
+    mean_smoke <- mean(as.numeric(as.character(data_iq$smoke24_endline)), na.rm = TRUE)
+
+    tibble(
+      income_quart = iq,
+      term         = c("Outdoor\nAmbient", "Smoking\nHousehold"),
+      contribution = c(beta_outdoor * mean_outdoor, beta_smoke * mean_smoke)
+    )
+  })
+
+decomp_by_income_tokeep <-
+  decomp_by_income %>%
+  dplyr::select(income_quart, term, contribution)
+
+r_indoor <-
+  feols(pm25_indoor ~ income_quart + 0, data = pm,
+        cluster = ~respondent_id+date_hour) %>%
+  tidy(conf.int = TRUE) %>%
+  dplyr::rename(income_quart = term) %>%
+  mutate(income_quart = str_remove(income_quart, "income_quart"))
+
+decomp_remainder <-
+  decomp_by_income_tokeep %>%
+  group_by(income_quart) %>%
+  summarise(contribution = sum(contribution, na.rm = TRUE), .groups = "drop") %>%
+  left_join(r_indoor, by = "income_quart") %>%
+  mutate(unexplained = estimate - contribution) %>%
+  dplyr::select(income_quart, contribution = unexplained) %>%
+  mutate(term = "Other\n(Hyperlocal)")
+
+decomp_all <-
+  bind_rows(decomp_by_income_tokeep, decomp_remainder) %>%
+  mutate(term = factor(term, levels = c("Smoking\nHousehold", "Other\n(Hyperlocal)", "Outdoor\nAmbient")),
+         income_quart = if_else(income_quart == "Income Bin 1", "Income Bin 1 (lowest)", income_quart),
+         income_quart = str_wrap(income_quart, width = 5),
+         income_quart = factor(income_quart, levels = c("Income\nBin 1\n(lowest)", "Income\nBin 2", "Income\nBin 3", "Income\nBin 4")))
+
+# compute label positions (cumulative midpoints) for Bin 1 only
+decomp_labels <- decomp_all %>%
+  filter(income_quart == "Income\nBin 1\n(lowest)") %>%
+  arrange(term) %>%
+  mutate(y_mid = c(50, 33, 12),
+         term_label = as.character(term))
+
+
+p_decomp_income <-
+  decomp_all %>%
+  ggplot(aes(x = income_quart, y = contribution, fill = term)) +
+  geom_col(width = .75) +
+  geom_text(data = decomp_labels,
+            aes(y = y_mid, label = term_label),
+            size = 1.3, color = "white", lineheight = 0.85) +
+  geom_hline(yintercept = 0, linewidth = .2) +
+  scale_fill_brewer(palette = "Dark2") +
+  ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
+  xlab("Income quartile") +
+  facet_wrap(~"Indoor PM2.5") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(axis.title.y = element_text(angle = 90),
+        strip.background = element_blank(), 
+        axis.ticks = element_line(size = .1),
+        legend.position = "none",
+        text = element_text(size = 6),
+        strip.text= element_text(size = 5.5),
+        title = element_text(face = "bold",size = 5)); p_decomp_income
+
+
+# save this as a plot for figure 4, when we discuss income heterogeneity
+# write_rds(p_decomp_income, file.path(ddir, "plot_decomp_by_income.rds"))
+
+
 # =========================================================================
-# Income heterogeneity in infiltration rate (saved from fig2)
+# Income heterogeneity in infiltration rate 
 # =========================================================================
-income_inf_tidy <- read_rds(file.path(ddir, "income_infiltration.rds"))
+income_inf_test <- "income_quart::Income Bin 1:pm25_outdoor3 = income_quart::Income Bin 4:pm25_outdoor3"
+income_inf_fstat <- paste0("Bin 1 = Bin 4: ",
+                           round(linearHypothesis(reg_decomp_income, c(income_inf_test))$`Pr(>Chisq)`[2], digits = 2))
+
+income_inf_tidy <-
+  tidy(reg_decomp_income, conf.int = TRUE) %>%
+  dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
+  left_join((tidy(reg_decomp_income, conf.int = TRUE, conf.level = .9))) %>%
+  filter(str_detect(term, "pm25")) %>%
+  mutate(fstat = income_inf_fstat,
+         type = str_replace_all(term, "income_quart::Income |:pm25_outdoor3", ""),
+         title = "Income")
 
 p_income_inf <-
   income_inf_tidy %>%
@@ -176,9 +286,9 @@ p_income_inf <-
 # Assemble figure 4:
 # a = p_char_income, b = p_hyperlocal_income, c = p_income_inf, d = p_decomp
 # =========================================================================
-((p_char_income + p_hyperlocal_income + plot_layout(widths = c(3, 2))) /
-  (p_income_inf + p_decomp)) +
-  plot_layout(heights = c(0.75, 1)) +
+(p_decomp_income + p_hyperlocal_income + plot_layout(widths = c(3, 2))) /
+  ((p_income_inf + p_char_income)+ plot_layout(widths = c(1, 2))) +
+  plot_layout(heights = c(1, 0.75)) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") &
   theme(axis.ticks = element_line(size = .1),
         plot.tag = element_text(size = 6, face = "bold"))

@@ -2,17 +2,40 @@
 rm(list=ls_extra())
 gc()
 
-# read in survey data
+# read in pm data
+pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
+  mutate(cooking = replace_na(cooking, 0))
+
+# HH-level PM averages
+pm_hh <-
+  pm %>%
+  group_by(respondent_id) %>%
+  summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
+            pm25outdoor_mean = mean(pm25_outdoor3, na.rm = TRUE),
+            .groups = "drop")
+
+# 24-hour rolling mean of outdoor PM (for matching to baseline survey time)
+pm_dt <- as.data.table(pm)[, .(respondent_id, date_hour, pm25_outdoor3)]
+setorder(pm_dt, respondent_id, date_hour)
+pm_dt[, pm25_outdoor24 := frollmean(pm25_outdoor3, n = 24, fill = NA, na.rm = TRUE, align = "right"),
+      by = respondent_id]
+pm_outdoor24 <- pm_dt[, .(respondent_id, date_hour, pm25_outdoor24)]
+rm(pm_dt)
+
+# read in survey data and merge PM averages
 survey <-
-  read_rds(file.path(ddir, "df_survey.rds"))  %>%
+  read_rds(file.path(ddir, "df_survey.rds")) %>%
+  left_join(pm_hh, by = "respondent_id") %>%
+  mutate(date_hour_baseline = floor_date(as.POSIXct(starttime_baseline), "hour")) %>%
+  left_join(pm_outdoor24, by = c("respondent_id", "date_hour_baseline" = "date_hour")) %>%
+  rename(pm25_outdoor24_baseline = pm25_outdoor24) %>%
+  dplyr::select(-date_hour_baseline) %>%
   mutate(income_high = hh_income >= 4,
          house_size = case_when(housing_room_number < 5 ~ "Small",
                                 housing_room_number >= 5 ~ "Big"),
          house_size = factor(house_size, levels = c("Small", "Big")))
 
-# read in pm data
-pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
-  mutate(cooking = replace_na(cooking, 0))
+rm(pm_hh, pm_outdoor24)
 
 
 rp_to_usd <- 0.000062
@@ -77,7 +100,7 @@ n_all <-
 
 # add in comparison to jakarta-wide population-----------------------------------
 susenas <-
-  file.path(ddir, "Susenas23_DKI.dta") %>%
+  file.path(ddir, "raw_data/Susenas23_DKI.dta") %>%
   haven::read_dta()
 
 susenas_hoh <-
@@ -166,19 +189,11 @@ hh_pm_indoor <-
   summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE))
 
 hh_mindist <-
-  read_csv(file.path(ddir, "hh_sensor_dist.csv")) %>%
-  group_by(respondent_id) %>%
-  arrange(distance) %>%
-  filter(row_number() == 1) %>%
-  dplyr::select(respondent_id, sensor_mindist = distance, dist_central, dist_south) %>%
-  full_join(survey) %>%
-  left_join(hh_pm_indoor) %>%
-  ungroup() %>%
-
+  survey %>%
+  left_join(hh_pm_indoor, by = "respondent_id") %>%
   # fill in missing pm25_indoor with average
   mutate(pm25_indoor = if_else(is.na(pm25_indoor), mean(hh_pm_indoor$pm25_indoor, na.rm = TRUE), pm25_indoor),
-        housing_room_number = if_else(is.na(housing_room_number), mean(housing_room_number, na.rm = TRUE), housing_room_number)) %>%
-  filter(treatment_status == "Fan") # add in !hardware cancel later
+        housing_room_number = if_else(is.na(housing_room_number), mean(housing_room_number, na.rm = TRUE), housing_room_number))
 
 xvars <- "pm25_indoor + pm25_outdoor24_baseline +income_usd  + housing_room_number + housing_ac +
         hoh_employed + hoh_school_secondary + hoh_school_tertiary"
@@ -334,11 +349,11 @@ ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg
 # is reported waste burning correlated with higher outdoor pollution
 # ===================================================================
 reg_outdoor_burning <-
-  feols(pm25_outdoor3 ~ trash_burning_1week_baseline + temp_outdoor3 + humidity_outdoor3| week + hour, data = pm,
+  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = pm,
       cluster = ~respondent_id+date_hour)
 
 reg_outdoor_burning_2k <-
-  feols(pm25_outdoor3 ~ trash_burning_1week_baseline + temp_outdoor3 + humidity_outdoor3| week + hour, data = filter(pm, sensor_mindist < 2000),
+  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = filter(pm, sensor_mindist < 2000),
       cluster = ~respondent_id+date_hour)
 
 etable(reg_outdoor_burning, reg_outdoor_burning_2k,
@@ -528,7 +543,7 @@ p_spike_coef <-
   geom_point(size = .8, color = "#1b9e77") +
   xlab(expression(Pr(PM[2.5]~Spike))) +
   ylab("Effect of\nHyperlocal\nSource") +
-  annotate("text", x = mean_spike, y = 6.5, label = "mean", size = 1.5, color = "#1b9e77") +
+  annotate("text", x = mean_spike + 0.02, y = 6.5, label = "mean p(spike)", size = 1.5, color = "#1b9e77") +
   theme_classic() +
   theme(panel.grid = element_blank(),
         axis.line.y = element_blank(),
@@ -710,20 +725,19 @@ ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.png"),
 rm(list = ls_extra())
 gc()
 
-# read in survey data
-survey <-
-  file.path(ddir, "df_survey.rds") %>%
-  read_rds() %>%
-  mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
-         child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline,
-         day_of_week = lubridate::wday(starttime_baseline, label = TRUE),
-         trash = as.numeric(trash_burning_1week_baseline) > 1,
-         open_room = close_door_1hour == 1 | close_window_1hour == 1,
-         date_hour = floor_date(starttime, "hour"))  %>%
+# re-read survey with PM averages for BoE calculations
+survey_boe <-
+  read_rds(file.path(ddir, "df_survey.rds")) %>%
+  left_join(read_rds(file.path(ddir, "df_reg.rds")) %>%
+              group_by(respondent_id) %>%
+              summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
+                        pm25outdoor_mean = mean(pm25_outdoor3, na.rm = TRUE),
+                        .groups = "drop"),
+            by = "respondent_id") %>%
   dplyr::select(respondent_id, income_quart, smoke24_endline, pm25_mean, pm25outdoor_mean)
 
 # average indoor / outdoor PM
-data_summ = survey %>%
+data_summ = survey_boe %>%
   dplyr::group_by(income_quart, smoke24_endline) %>%
   dplyr::summarize(pm25_mean = mean(pm25_mean, na.rm=T),
                    pm25outdoor_mean = mean(pm25outdoor_mean, na.rm=T)) %>% ungroup() %>%
