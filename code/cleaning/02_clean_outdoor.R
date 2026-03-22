@@ -102,13 +102,13 @@ gc()
 # 2. distance weighted by closest 10 sensors 
 # ===========================================================
 # dates for rounds
-round1_dates <- c(ymd_h("20240424 01"), ymd_h("20240830 23"))
+round1_dates <- c(ymd_h("20240424 01"), ymd_h("20240822 00"))
 round2_dates <- c(ymd_h("20240822 01"), max(outdoor$date))
 
 outdoor3_round1 <-
   filter(pairs10, nclose < 4) %>%
   inner_join(dplyr::select(filter(st_set_geometry(respondent, NULL), round == 1), respondent_id, round)) %>%
-  left_join(filter(outdoor, date_hour <= round2_dates[1])) 
+  left_join(filter(outdoor, date_hour < round2_dates[1]))
 
 outdoor3_round2 <-
   filter(pairs10, nclose < 4) %>%
@@ -161,7 +161,7 @@ gc()
 # do this separately for round 1 vs round 2 respondents
 outdoor1_full <- 
   expand_grid(respondent_id = unique(filter(respondent,round == 1)$respondent_id), 
-              date_hour = seq(ymd_h("20240424 01"), ymd_h("20240830 23"), by = "hour"))
+              date_hour = seq(ymd_h("20240424 01"), ymd_h("20240822 00"), by = "hour"))
 
 outdoor2_full <- 
   expand_grid(respondent_id = unique(filter(respondent,round == 2)$respondent_id), 

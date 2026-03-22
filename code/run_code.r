@@ -1,4 +1,4 @@
-pacman::p_load(
+pacman::p_load(readxl,
   tidyverse, lubridate, sf, patchwork, ggthemes, ggmap, scales,
   fixest, broom, knitr, kableExtra, car, relaimpo, latex2exp, Hmisc, data.table)
 
@@ -22,20 +22,20 @@ rhs_fml <- ~ as.factor(trash_burning_1week_baseline) + as.factor(smoke24_endline
 
 
 # run cleaning pipeline
-source(file.path(gdir, "code/cleaning/run_cleaning.R"))
+source(file.path(gdir, "code/cleaning/run_cleaning.r"))
 print("Cleaning finished")
 
-source(file.path(gdir, "code/analysis/fig1_desc.R"))
+source(file.path(gdir, "code/analysis/fig1_desc.r"))
 print("Figure 1 finished")
 
-source(file.path(gdir, "code/analysis/fig2_infiltration.R"))
+source(file.path(gdir, "code/analysis/fig2_infiltration.r"))
 print("Figure 2 finished")
 
-source(file.path(gdir, "code/analysis/fig3_source_decomposition.R"))
+source(file.path(gdir, "code/analysis/fig3_source_decomposition.r"))
 print("Figure 3 finished")
 
-source(file.path(gdir, "code/analysis/fig4_income.R"))
+source(file.path(gdir, "code/analysis/fig4_income.r"))
 print("Figure 4 finished")
 
-source(file.path(gdir, "code/analysis/appendix.R"))
+source(file.path(gdir, "code/analysis/appendix.r"))
 print("Appendix finished")

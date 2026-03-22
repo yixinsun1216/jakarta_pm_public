@@ -7,7 +7,6 @@ gc()
 pm <-
   read_rds(file.path(ddir, "df_reg.rds"))  %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
-         pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor),
          trash = trash_burning_1week_baseline != "Never",
          income_high = hh_income >= 4,
          cooking = replace_na(cooking, 0))

@@ -27,16 +27,14 @@ theme_set(theme_inf)
 survey <-
   read_rds(file.path(ddir, "df_survey.RDS"))  %>%
   mutate(income_high = hh_income >= 4,
-         house_size = case_when(housing_room_number < 3 ~ "Small",
-                                housing_room_number < 6 ~ "Medium",
-                                housing_room_number >= 6 ~"Big"),
-         house_size = factor(house_size, levels = c("Small", "Medium", "Big")))
+         house_size = case_when(housing_room_number < 5 ~ "Small",
+                                housing_room_number >= 5 ~"Big"),
+         house_size = factor(house_size, levels = c("Small", "Big")))
 
 # read in pm data
 pm <-
   read_rds(file.path(ddir, "df_reg.rds"))  %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
-         pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor),
          splines = Hmisc::cut2(pm25_outdoor3, cuts = c(30, 40, 50)),
          income_high = hh_income >= 4,
          room_ac = if_else(room_ac == 1, "AC", "No AC"),

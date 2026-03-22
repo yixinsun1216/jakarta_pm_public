@@ -307,42 +307,22 @@ stats$income_pm_ratio <- round(bin1_pm / bin4_pm, 2)
 stats$income_pct_higher <- round((bin1_pm / bin4_pm - 1) * 100, 0)
 # tex: "113% higher indoor PM2.5" (abstract, line 58)
 
-# infiltration by income
-income_inf <- read_rds(file.path(ddir, "income_infiltration.rds"))
-stats$inf_bin1 <- round(income_inf %>% filter(type == "Bin 1") %>% pull(estimate), 2)
-stats$inf_bin4 <- round(income_inf %>% filter(type == "Bin 4") %>% pull(estimate), 2)
-stats$inf_income_p <- income_inf %>% pull(fstat) %>% first()
-# tex: "0.69 (Bin 1) and 0.48 (Bin 4)" and "p = 0.53" (line 196)
-
-# decomposition shares
-# outdoor contribution to income gap
-income_outdoor <- pm %>%
-  filter(!is.na(pm25_indoor)) %>%
-  group_by(income_quart) %>%
-  summarise(mean_outdoor = mean(pm25_outdoor3, na.rm = TRUE), .groups = "drop")
-
-bin1_outdoor <- income_outdoor %>%
-  filter(income_quart == "Income Bin 1") %>% pull(mean_outdoor)
-bin4_outdoor <- income_outdoor %>%
-  filter(income_quart == "Income Bin 4") %>% pull(mean_outdoor)
-
-inf_bin1_val <- income_inf %>% filter(type == "Bin 1") %>% pull(estimate)
-inf_bin4_val <- income_inf %>% filter(type == "Bin 4") %>% pull(estimate)
-
-outdoor_contrib_bin1 <- inf_bin1_val * bin1_outdoor
-outdoor_contrib_bin4 <- inf_bin4_val * bin4_outdoor
-stats$infiltration_share_of_gap <- round(
-  (outdoor_contrib_bin1 - outdoor_contrib_bin4) / (bin1_pm - bin4_pm) * 100, 0)
-# tex: "16% of the difference" (line 196)
-
 # smoking contribution to income gap
 # need income-specific smoking coefficients from the interaction regression
-r_income_full <- paste0(
-  "pm25_indoor ~ income_quart:pm25_outdoor3 + income_quart:",
-  "as.factor(smoke24_endline) + income_quart + ",
-  rhs_controls_str, " | hour + week") %>%
-  as.formula() %>%
-  feols(pm, cluster = ~respondent_id+date_hour)
+r_income_full <- reg_decomp_income <- feols(
+  pm25_indoor ~
+    income_quart + 
+    i(income_quart,pm25_outdoor3) +
+    i(as.factor(trash_burning_1week_baseline), income_quart, ref = "Never") +
+    i(as.factor(smoke24_endline), income_quart, ref = 0) +
+    i(as.factor(room_pmsource_kitchen), income_quart, ref = 0) +
+    i(cooking, income_quart, ref = 0) +
+    i(income_quart, dist_primary) +
+    temp_outdoor3 + humidity_outdoor3 |
+    hour + week,
+  data = pm,
+  cluster = ~respondent_id + date_hour
+)
 
 smoke_income_tidy <- tidy(r_income_full) %>%
   filter(str_detect(term, "smoke24_endline"))
@@ -365,7 +345,7 @@ stats$smoking_share_of_gap <- round(
   (smoke_contrib_bin1 - smoke_contrib_bin4) / (bin1_pm - bin4_pm) * 100, 0)
 # tex: "48% of the difference" (line 201)
 
-stats$other_share_of_gap <- 100 - stats$infiltration_share_of_gap - stats$smoking_share_of_gap
+stats$other_share_of_gap <- 100 - stats$smoking_share_of_gap
 # tex: "38% of the difference" (line 203)
 
 # =========================================================================
@@ -446,10 +426,6 @@ compare <- tribble(
   "Income PM diff (Bin1-Bin4)", stats$income_pm_diff, "23.7", "increase of 23.7 µg/m³",
   "Income PM ratio", stats$income_pm_ratio, "~2", "nearly double/nearly twice",
   "Income % higher", stats$income_pct_higher, "113", "113% higher indoor PM2.5",
-  "Inf Bin 1", stats$inf_bin1, "0.69", "0.69 (Bin 1)",
-  "Inf Bin 4", stats$inf_bin4, "0.48", "0.48 (Bin 4)",
-  "Inf income p-value", stats$inf_income_p, "p = 0.53", "Bin 1 vs Bin 4 difference...noisy (p = 0.53)",
-  "Infiltration share of gap", stats$infiltration_share_of_gap, "16", "differences in infiltration explain 16%",
   "Smoking share of gap", stats$smoking_share_of_gap, "48", "smoking differences explain 48%",
   "Other share of gap", stats$other_share_of_gap, "38", "other hyperlocal...remaining 38%",
   "Spike rate Bin 1 %", stats$spike_rate_bin1, "3", "PM2.5 spikes...3% of the time",
