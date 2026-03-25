@@ -38,9 +38,9 @@ stats$pct_lpg <- round(mean(survey$hh_cookingfuel == "LPG", na.rm = TRUE) * 100,
 # tex: "98% of households have adopted clean cooking fuels" (line 54)
 
 stats$mean_hours_per_hh <- pm %>%
-  filter(!is.na(pm25_indoor)) %>%
-  count(respondent_id) %>%
-  pull(n) %>% mean() %>% round(0)
+  dplyr::filter(!is.na(pm25_indoor)) %>%
+  dplyr::count(respondent_id) %>%
+  dplyr::pull(n) %>% mean() %>% round(0)
 # tex: "Data coverage averaged 1,138 hours per household" (line 263)
 
 stats$attrition_pct <- round((1 - 285/308) * 100, 0)
@@ -64,33 +64,33 @@ stats$child_time_home_pct <- round(mean(
 # 3. PM levels (Section 1: Households exposed to high indoor PM)
 # =========================================================================
 daily_pm <- pm %>%
-  group_by(respondent_id, date) %>%
-  summarise(pm25_indoor_daily = mean(pm25_indoor, na.rm = TRUE),
+  dplyr::group_by(respondent_id, date) %>%
+  dplyr::summarise(pm25_indoor_daily = mean(pm25_indoor, na.rm = TRUE),
             pm25_outdoor_daily = mean(pm25_outdoor3, na.rm = TRUE),
             .groups = "drop")
 
 stats$mean_indoor_daily <- round(mean(daily_pm$pm25_indoor_daily, na.rm = TRUE), 1)
-# tex: "mean indoor daily PM2.5 concentration was 40.7 µg/m³" (line 107)
+# tex: "mean indoor daily PM2.5 concentration was 42.3 µg/m³" (line 107)
 
 stats$mean_outdoor_daily <- round(mean(daily_pm$pm25_outdoor_daily, na.rm = TRUE), 1)
-# tex: "mean outdoor daily PM2.5 concentration was 37.8 µg/m³" (line 107)
+# tex: "mean outdoor daily PM2.5 concentration was 39.5 µg/m³" (line 107)
 
 stats$io_ratio <- round(stats$mean_indoor_daily / stats$mean_outdoor_daily, 2)
-# tex: "I/O ratio of 1.08" (line 107)
+# tex: "I/O ratio of 1.07" (line 107)
 
 stats$who_exceedance_pct <- daily_pm %>%
   filter(!is.na(pm25_indoor_daily)) %>%
-  summarise(pct = round(mean(pm25_indoor_daily > 15) * 100, 0)) %>%
+  dplyr::summarise(pct = round(mean(pm25_indoor_daily > 15) * 100, 0)) %>%
   pull(pct)
 # tex: "exceeding the WHO 24-hour guideline value on 78% of monitored days" (line 56, 215)
 
 stats$outdoor_above100_pct <- round(
   mean(pm$pm25_outdoor3 > 100, na.rm = TRUE) * 100, 1)
-# tex: "outdoor readings exceeded 100µg/m³ in 0.7% of hours" (line 111)
+# tex: "outdoor readings exceeded 100µg/m³ in 0.8% of hours" (line 111)
 
 stats$indoor_above100_pct <- round(
   mean(pm$pm25_indoor > 100, na.rm = TRUE) * 100, 0)
-# tex: "indoor readings exceeded 100µg/m³ in 7% of hours" (line 111)
+# tex: "indoor readings exceeded 100µg/m³ in 6% of hours" (line 111)
 
 # =========================================================================
 # 4. Infiltration (Section 2)
@@ -104,7 +104,7 @@ main_tidy <- tidy(reg_main, conf.int = TRUE) %>%
 stats$infiltration_main <- round(main_tidy$estimate, 2)
 stats$infiltration_ci_low <- round(main_tidy$conf.low, 2)
 stats$infiltration_ci_high <- round(main_tidy$conf.high, 2)
-# tex: "0.62 (95% CI, 0.47, 0.77; P < 0.001)" (line 134)
+# tex: "0.59 (95% CI, 0.43, 0.75; P < 0.001)" (line 134)
 
 # infiltration restricted to <500m
 reg_500m <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 |
@@ -112,7 +112,7 @@ reg_500m <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor
                   filter(pm, sensor_mindist < 500), cluster = ~respondent_id+date_hour)
 stats$infiltration_500m <- round(
   tidy(reg_500m) %>% filter(term == "pm25_outdoor3") %>% pull(estimate), 2)
-# tex: "approximately 0.80 when we restrict to households within 500m" (line 138)
+# tex: "approximately 0.84 when we restrict to households within 500m" (line 138)
 
 # infiltration range (min and max across specs in fig2a)
 reg_hh <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outdoor3 |
@@ -124,11 +124,11 @@ reg_hh_hour <- feols(pm25_indoor ~ pm25_outdoor3 + temp_outdoor3 + humidity_outd
 
 # 24hr aggregate
 pm_agg24 <- pm %>%
-  mutate(pm25_outdoor3_mm = if_else(is.na(pm25_indoor), NA_real_, pm25_outdoor3)) %>%
-  group_by(respondent_id, date, week,
+  dplyr::mutate(pm25_outdoor3_mm = if_else(is.na(pm25_indoor), NA_real_, pm25_outdoor3)) %>%
+  dplyr::group_by(respondent_id, date, week,
            trash_burning_1week_baseline, smoke24_endline,
            room_pmsource_kitchen, dist_primary) %>%
-  summarise(pm25_outdoor24 = mean(pm25_outdoor3_mm, na.rm = TRUE),
+  dplyr::summarise(pm25_outdoor24 = mean(pm25_outdoor3_mm, na.rm = TRUE),
             pm25_indoor24 = mean(pm25_indoor, na.rm = TRUE),
             temp24 = mean(temp_outdoor3, na.rm = TRUE),
             hum24 = mean(humidity_outdoor3, na.rm = TRUE),
@@ -150,7 +150,7 @@ inf_estimates <- c(
 )
 stats$infiltration_range_low <- round(min(inf_estimates), 2)
 stats$infiltration_range_high <- round(max(inf_estimates), 2)
-# tex: "between 0.51 and 0.71" (line 217)
+# tex: "between 0.51 and 0.69" (line 217)
 
 # =========================================================================
 # 5. Heterogeneity p-values (Section 2)
@@ -264,8 +264,8 @@ pm <- pm %>%
 
 spike_smoke <- pm %>%
   filter(!is.na(spike)) %>%
-  group_by(smoke24_endline) %>%
-  summarise(spike_rate = mean(spike, na.rm = TRUE), .groups = "drop")
+  dplyr::group_by(smoke24_endline) %>%
+  dplyr::summarise(spike_rate = mean(spike, na.rm = TRUE), .groups = "drop")
 
 spike_nonsmoking <- spike_smoke %>% filter(smoke24_endline == 0) %>% pull(spike_rate)
 spike_smoking <- spike_smoke %>% filter(smoke24_endline == 1) %>% pull(spike_rate)
@@ -292,8 +292,8 @@ stats$pct_within_500m_road <- round(
 # =========================================================================
 income_pm <- pm %>%
   filter(!is.na(pm25_indoor)) %>%
-  group_by(income_quart) %>%
-  summarise(mean_pm = mean(pm25_indoor, na.rm = TRUE), .groups = "drop")
+  dplyr::group_by(income_quart) %>%
+  dplyr::summarise(mean_pm = mean(pm25_indoor, na.rm = TRUE), .groups = "drop")
 
 bin1_pm <- income_pm %>% filter(income_quart == "Income Bin 1") %>% pull(mean_pm)
 bin4_pm <- income_pm %>% filter(income_quart == "Income Bin 4") %>% pull(mean_pm)
@@ -334,10 +334,10 @@ smoke_bin4_coef <- smoke_income_tidy %>%
 
 smoke_prev_bin1 <- pm %>%
   filter(income_quart == "Income Bin 1") %>%
-  summarise(m = mean(smoke24_endline == 1, na.rm = TRUE)) %>% pull(m)
+  dplyr::summarise(m = mean(smoke24_endline == 1, na.rm = TRUE)) %>% pull(m)
 smoke_prev_bin4 <- pm %>%
   filter(income_quart == "Income Bin 4") %>%
-  summarise(m = mean(smoke24_endline == 1, na.rm = TRUE)) %>% pull(m)
+  dplyr::summarise(m = mean(smoke24_endline == 1, na.rm = TRUE)) %>% pull(m)
 
 smoke_contrib_bin1 <- smoke_bin1_coef * smoke_prev_bin1
 smoke_contrib_bin4 <- smoke_bin4_coef * smoke_prev_bin4
@@ -353,8 +353,8 @@ stats$other_share_of_gap <- 100 - stats$smoking_share_of_gap
 # =========================================================================
 spike_income <- pm %>%
   filter(!is.na(spike), !is.na(income_quart)) %>%
-  group_by(income_quart) %>%
-  summarise(spike_rate = mean(spike, na.rm = TRUE) * 100, .groups = "drop")
+  dplyr::group_by(income_quart) %>%
+  dplyr::summarise(spike_rate = mean(spike, na.rm = TRUE) * 100, .groups = "drop")
 
 stats$spike_rate_bin1 <- round(
   spike_income %>% filter(income_quart == "Income Bin 1") %>% pull(spike_rate), 1)
@@ -365,7 +365,7 @@ stats$spike_rate_bin4 <- round(
 # p-value for spike rate difference
 spike_test <- pm %>%
   filter(!is.na(spike), income_quart %in% c("Income Bin 1", "Income Bin 4")) %>%
-  mutate(bin1 = income_quart == "Income Bin 1")
+  dplyr::mutate(bin1 = income_quart == "Income Bin 1")
 spike_reg <- feols(spike ~ bin1, spike_test, cluster = ~respondent_id)
 stats$spike_income_p <- round(tidy(spike_reg) %>%
                                 filter(term == "bin1TRUE") %>%
