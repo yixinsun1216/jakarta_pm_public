@@ -33,7 +33,7 @@ jakarta_shp <-
   file.path(ddir, "Batas Adm RW 01 Mei 2020/Batas_adm_RW_010520.shp") %>%
   st_read() %>%
   #group_by(WILAYAH) %>%
-  summarise(type = "Jakarta")
+  dplyr::summarise(type = "Jakarta")
 
 data_locations <- 
   bind_rows(mutate(filter(sensor_locations, n3 == 1), type = "Outdoor Sensor"), 
@@ -69,8 +69,8 @@ p_map <-
 # average daily
 df_date_hour <- 
   pm %>% 
-  group_by(date) %>%
-  summarise(Indoor = mean(pm25_indoor, na.rm = TRUE), 
+  dplyr::group_by(date) %>%
+  dplyr::summarise(Indoor = mean(pm25_indoor, na.rm = TRUE), 
             "Ambient Outdoor" = mean(pm25_outdoor3, na.rm = TRUE)) %>%
   pivot_longer(cols = c("Indoor", "Ambient Outdoor")) %>%
   filter(date >= ymd(20240601)) %>%
