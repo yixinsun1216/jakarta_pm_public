@@ -24,6 +24,10 @@ pm <-
   mutate(
     traffic_hours = hour(date_hour) %in% c(7, 8, 9, 16, 17, 18, 19),
     cooking_night = hour(date_hour) %in% c(17, 18, 19, 20),
+    dist_primary = dist_primary / 1000, # distance in km
+    dist_motorway = dist_motorway / 1000,
+    dist_secondary = dist_secondary / 1000,
+    dist_tertiary = dist_tertiary / 1000
   ) %>%
   mutate(cooking = replace_na(cooking, 0))
 
@@ -139,7 +143,7 @@ output_lmg_tbl <- compute_lmg_tbl(reg_lm)
 dict <- c(
   "pm25_outdoor3" = "Outdoor Ambient",
   "cooking" = "Cooking",
-  "dist_primary" = "Distance to Main Road",
+  "dist_primary" = "Distance to Main Road (km)",
   "as.factor(smoke24_endline)1" = "Smoked (24 Hours)",
   "as.factor(smoke24_endline)" = "Smoked (24 Hours)",
   "as.factor(room_pmsource_kitchen)1" = "Kitchen source",
@@ -156,7 +160,7 @@ output <-
   mutate(
     term = factor(term, levels = c("Outdoor Ambient", "Smoked (24 Hours)", "Waste Burning (1-2/week)",
                                   "Waste Burning (2+/week)", "Waste Burning", "Kitchen source", "Cooking",
-                                  "Distance to Main Road"))) %>%
+                                  "Distance to Main Road (km)"))) %>%
   arrange(term)  ; output
 
 options(knitr.kable.NA = '')
@@ -202,7 +206,7 @@ coef_pm <-
                                             "Waste Burning (1-2/week)",
                                             "Kitchen source",
                                             "Cooking",
-                                            "Distance to Main Road"))))
+                                            "Distance to Main Road (km)"))))
 
 p_sources_coef <-
   ggplot(coef_pm, aes(x = estimate, y = term)) +
@@ -232,7 +236,7 @@ p_contributions <-
   filter(!is.na(frac)) %>%
   mutate(outdoor = str_detect(term, "Outdoor"),
          term = str_wrap(term, 12),
-         term = factor(term, levels = c("Distance to\nMain Road", "Cooking", "Kitchen\nsource",
+         term = factor(term, levels = c("Distance to\nMain Road\n(km)", "Cooking", "Kitchen\nsource",
                                         "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
                                         "Smoked (24\nHours)", "Outdoor\nAmbient"))) %>%
   ggplot(aes(y = term, x = frac, fill = outdoor)) +

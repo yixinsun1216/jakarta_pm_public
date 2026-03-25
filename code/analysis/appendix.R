@@ -4,7 +4,11 @@ gc()
 
 # read in pm data
 pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
-  dplyr::mutate(cooking = replace_na(cooking, 0))
+  dplyr::mutate(cooking = replace_na(cooking, 0),
+                dist_primary = dist_primary / 1000, # distance in km
+                dist_motorway = dist_motorway / 1000,
+                dist_secondary = dist_secondary / 1000,
+                dist_tertiary = dist_tertiary / 1000)
 
 # HH-level PM averages
 pm_hh <-
@@ -349,16 +353,18 @@ ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg
 # is reported waste burning correlated with higher outdoor pollution
 # ===================================================================
 reg_outdoor_burning <-
-  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = pm,
+  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = pm %>%
+          dplyr::filter(trash_burning_1week_baseline != ""),
       cluster = ~respondent_id+date_hour)
 
 reg_outdoor_burning_2k <-
-  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = filter(pm, sensor_mindist < 2000),
+  feols(pm25_outdoor3 ~ i(trash_burning_1week_baseline, ref = "Never") + temp_outdoor3 + humidity_outdoor3| week + hour, data = filter(pm, sensor_mindist < 2000)  %>%
+          dplyr::filter(trash_burning_1week_baseline != ""),
       cluster = ~respondent_id+date_hour)
 
 etable(reg_outdoor_burning, reg_outdoor_burning_2k,
-        dict =c("trash_burning_1week_baseline1or2times" = "Waste Burning (1-2/week)",
-                "trash_burning_1week_baseline3ormoretimes" = "Waste Burning (2+/week)",
+        dict =c("trash_burning_1week_baseline::1or2times" = "Waste Burning (1-2/week)",
+                "trash_burning_1week_baseline::3ormoretimes" = "Waste Burning (3+/week)",
                 "temp_outdoor3" = "Outdoor Temperature",
                 "humidity_outdoor3" = "Outdoor Humidity",
                 pm25_outdoor3 = "Outdoor PM2.5",
@@ -386,7 +392,7 @@ pm %>%
          panel.background = element_rect(fill = "transparent", colour = NA),
          plot.background = element_rect(fill = "transparent", colour = NA),
         text = element_text(size = 15)) +
-  xlab("Distance (meters)")
+  xlab("Distance (km)")
 ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.png"),
     width = 15, height= 10, bg = "transparent", units = "cm")
 
@@ -407,7 +413,7 @@ rhs_fml_sources <- ~ as.factor(trash_burning_1week_baseline) +
 dict_sources <- c(
   "pm25_outdoor3" = "Outdoor Ambient",
   "cooking" = "Cooking",
-  "dist_primary" = "Distance to Main Road",
+  "dist_primary" = "Distance to Main Road (km)",
   "as.factor(smoke24_endline)1" = "Smoking Household",
   "as.factor(smoke24_endline)" = "Smoking Household",
   "as.factor(room_pmsource_kitchen)1" = "Kitchen source",
@@ -494,7 +500,7 @@ output_spike <-
   mutate(lmg = scales::percent(lmg, accuracy = 1),
          term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning (1-2/week)",
                                         "Waste Burning (2+/week)", "Waste Burning", "Kitchen source", "Cooking",
-                                        "Distance to Main Road"))) %>%
+                                        "Distance to Main Road (km)"))) %>%
   arrange(term)
 
 options(knitr.kable.NA = '')
@@ -532,7 +538,7 @@ coef_spike <-
                                             "Waste Burning (1-2/week)",
                                             "Kitchen source",
                                             "Cooking",
-                                            "Distance to Main Road"))))
+                                            "Distance to Main Road (km)"))))
 
 p_spike_coef <-
   ggplot(coef_spike, aes(x = estimate, y = term)) +
@@ -562,7 +568,7 @@ p_spike <-
   filter(!is.na(frac)) %>%
   mutate(outdoor = str_detect(term, "Outdoor"),
          term = str_wrap(term, 12),
-         term = factor(term, levels = c("Distance to\nMain Road", "Cooking", "Kitchen\nsource",
+         term = factor(term, levels = c("Distance to\nMain Road\n(km)", "Cooking", "Kitchen\nsource",
                                         "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
                                         "Smoking\nHousehold", "Outdoor\nAmbient"))) %>%
   ggplot(aes(y = term, x = frac, fill = outdoor)) +
