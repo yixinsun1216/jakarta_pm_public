@@ -290,8 +290,10 @@ p_income <-
   xlab(expression(PM[2.5] ~ (mu * g/m^3))); p_income
 
 ggsave(file.path(gdir, "output/figures/pm_income_robustness.png"),
-       width = 14, height= 6, bg = "transparent", units = "cm")
+       width = 14, height= 6, bg = "transparent", units = "cm", dpi = 300)
 
+ggsave(file.path(gdir, "output/figures/pm_income_robustness.tiff"),
+       width = 14, height= 6, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 # ==================================================
 # infiltration rate - lags
 # ==================================================
@@ -346,7 +348,8 @@ p_lags <-
         plot.background = element_rect(fill = "transparent", colour = NA)) +
   geom_text(aes(x = 8, y = .5, label = paste0("Inf. Rate = ", sum_beta)), size =2) ; p_lags
 
-ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm")
+ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/inf_lags.tiff"), width = 13, height= 6, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 
 
 # ===================================================================
@@ -394,8 +397,9 @@ pm %>%
         text = element_text(size = 15)) +
   xlab("Distance (km)")
 ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.png"),
-    width = 15, height= 10, bg = "transparent", units = "cm")
-
+    width = 15, height= 10, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.tiff"),
+       width = 15, height= 10, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -592,8 +596,9 @@ p_spike <-
 p_spike_coef + p_spike +
   plot_annotation(tag_levels = "a", tag_suffix = ".")
 ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.png"),
-    width = 14, height = 8, bg = "transparent", units = "cm")
-
+    width = 14, height = 8, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.tiff"),
+       width = 14, height = 8, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Missing data diagnostics
@@ -622,8 +627,9 @@ p_missing_cdf <-
         plot.background = element_rect(fill = "transparent", colour = NA)); p_missing_cdf
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.png"),
-       width = 8, height = 6, bg = "transparent", units = "cm")
-
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Robustness: infiltration under alternative weighting schemes
@@ -679,9 +685,10 @@ p_weight_robust <-
         plot.background = element_rect(fill = "transparent", colour = NA)); p_weight_robust
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_weight.png"),
-       width = 8, height = 6, bg = "transparent", units = "cm")
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
 
-
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_weight.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Robustness: infiltration by distance to outdoor sensor
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -719,8 +726,9 @@ p_dist_robust <-
         plot.background = element_rect(fill = "transparent", colour = NA)); p_dist_robust
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.png"),
-       width = 8, height = 6, bg = "transparent", units = "cm")
-
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # BoE Envelope Tightening

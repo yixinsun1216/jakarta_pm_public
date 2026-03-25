@@ -296,4 +296,7 @@ p_income_inf <-
         plot.tag = element_text(size = 6, face = "bold"))
 
 ggsave(file.path(gdir, "output/figures/fig4_pm_income.png"),
-       width = 16, height= 12, bg = "transparent", units = "cm")
+       width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300)
+
+ggsave(file.path(gdir, "output/figures/fig4_pm_income.tiff"),
+       width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
