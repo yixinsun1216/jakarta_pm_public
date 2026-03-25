@@ -284,7 +284,7 @@ p_income <-
         plot.background = element_rect(fill = "transparent", colour = NA),
         legend.position = "bottom",
         legend.title = element_blank(),
-        legend.text = element_text(size = 5),
+        legend.text = element_text(size = 6),
         legend.box.margin=margin(-10,-10,0, 0),
         legend.key.size = unit(0.05, "cm")) +
   xlab(expression(PM[2.5] ~ (mu * g/m^3))); p_income
@@ -335,7 +335,7 @@ p_lags <-
   geom_hline(aes(yintercept = 0), size = .1) +
   xlab("Time lag k (hours)") +
   ylab(expression(beta[k]))+
-  theme(axis.title = element_text(size = 5),
+  theme(axis.title = element_text(size = 6),
         axis.line.x = element_blank(),
         axis.line.y = element_line(size = .1),
         axis.ticks.x = element_blank(),
@@ -551,12 +551,12 @@ p_spike_coef <-
   geom_point(size = .8, color = "#1b9e77") +
   xlab(expression(Pr(PM[2.5]~Spike))) +
   ylab("Effect of\nHyperlocal\nSource") +
-  annotate("text", x = mean_spike + 0.02, y = 6.5, label = "mean p(spike)", size = 1.5, color = "#1b9e77") +
+  annotate("text", x = mean_spike + 0.02, y = 6.5, label = "mean p(spike)", size = 2.2, color = "#1b9e77") +
   theme_classic() +
   theme(panel.grid = element_blank(),
         axis.line.y = element_blank(),
         axis.title.x = element_text(size = 6),
-        axis.title.y = element_text(size = 5, angle = 90),
+        axis.title.y = element_text(size = 6, angle = 90),
         panel.background = element_rect(fill = "transparent", colour = NA),
         plot.background = element_rect(fill = "transparent", colour = NA),
         text = element_text(size = 6),
@@ -620,7 +620,7 @@ p_missing_cdf <-
   ylab("Cumulative Share\nof Households") +
   theme_classic() +
   theme(axis.title = element_text(size = 6),
-        axis.text = element_text(size = 5),
+        axis.text = element_text(size = 6),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         panel.background = element_rect(fill = "transparent", colour = NA),
@@ -678,7 +678,7 @@ p_weight_robust <-
   scale_y_continuous(limits = c(0, 1.1), breaks = c(0.25, 0.5, 0.75, 1)) +
   theme_classic() +
   theme(axis.title = element_text(size = 6),
-        axis.text = element_text(size = 5),
+        axis.text = element_text(size = 6),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         panel.background = element_rect(fill = "transparent", colour = NA),
@@ -719,7 +719,7 @@ p_dist_robust <-
   scale_y_continuous(limits = c(0, 1.1), breaks = c(0.25, 0.5, 0.75, 1)) +
   theme_classic() +
   theme(axis.title = element_text(size = 6),
-        axis.text = element_text(size = 5),
+        axis.text = element_text(size = 6),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         panel.background = element_rect(fill = "transparent", colour = NA),

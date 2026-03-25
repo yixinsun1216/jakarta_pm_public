@@ -85,14 +85,14 @@ p_pm_daily <-
   ylab(expression(paste("PM"[2.5], " (", mu, "g/m"^3, ")"))) + 
   scale_color_brewer(palette = "Dark2") + 
   geom_hline(aes(yintercept = 5), linetype = "dashed", size = .2) + 
-  annotate("text", x = ymd("20240801"), y =7, label = "WHO Annual Std.", size = 1.5) + 
+  annotate("text", x = ymd("20240801"), y =7, label = "WHO Annual Std.", size = 2.2) + 
   annotate("segment", x = ymd("2024-06-01"), xend = ymd("2024-08-26"),
            y = 80, yend = 80, size = 0.2) +
   annotate("segment", x = ymd("2024-06-01"), xend = ymd("2024-06-01"),
            y = 79, yend = 80, size = 0.2) +
   annotate("segment", x = ymd("2024-08-26"), xend = ymd("2024-08-26"),
            y = 79, yend = 80, size = 0.2) +
-  annotate("text", x = ymd("2024-07-14"), y = 83, label = "Data Collection Round 1", size = 1.5) +
+  annotate("text", x = ymd("2024-07-14"), y = 83, label = "Data Collection Round 1", size = 2.2) +
 
   # Round 2 bracket
   annotate("segment", x = ymd("2024-09-10"), xend = ymd("2024-12-12"),
@@ -101,7 +101,7 @@ p_pm_daily <-
            y = 79, yend = 80, size = 0.2) +
   annotate("segment", x = ymd("2024-12-12"), xend = ymd("2024-12-12"),
            y = 79, yend = 80, size = 0.2) +
-  annotate("text", x = ymd("2024-10-24"), y = 83, label = "Round 2", size = 1.5) +
+  annotate("text", x = ymd("2024-10-24"), y = 83, label = "Round 2", size = 2.2) +
   scale_x_date(date_breaks = "1 month",date_labels = "%b-%d", 
     limits = c(ymd("2024-06-01"), ymd("2024-12-12"))) +
   theme(legend.position = c(.85,.75), 
@@ -110,8 +110,8 @@ p_pm_daily <-
         legend.title = element_blank(), 
         legend.text = element_text(size = 4.5),
         axis.title.x = element_blank(),
-        axis.text = element_text(size = 5), 
-        axis.title = element_text(size = 5),
+        axis.text = element_text(size = 6), 
+        axis.title = element_text(size = 6),
         axis.line = element_line(size = .1, color = "gray20")); p_pm_daily
 
 
@@ -127,7 +127,7 @@ p_indoor_week <-
   ggplot(aes(x = date_hour, y = value, group = respondent_id)) + 
   geom_line(color = "gray60", size = .1) +
   stat_summary(fun = "mean", color = "darkred", geom ="line", aes(group = 1), size = .4) +
-  #annotate("text", x = ymd_h("20240714 16"), y =90, label = "Mean", size = 5, color = "darkred") + 
+  #annotate("text", x = ymd_h("20240714 16"), y =90, label = "Mean", size = 6, color = "darkred") + 
   theme_classic() + 
   scale_y_continuous(breaks = seq(0, 500, by=100), limits=c(1,500), expand = c(0, 0)) + 
   ylab(expression(paste("PM"[2.5], " (", mu, "g/m"^3, ")"))) +
@@ -140,7 +140,7 @@ p_indoor_week <-
   # geom_hline(aes(yintercept = 5), linetype = "dashed", color= "gray30", size = .1) +
   # geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
   # geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
-  annotate("text", x = ymd_h("20240731 01"), y =50, label = "Mean", size = 1.5, color = "darkred") 
+  annotate("text", x = ymd_h("20240731 01"), y =50, label = "Mean", size = 2.2, color = "darkred") 
 
 
 # =========================================================================
@@ -156,14 +156,14 @@ p_outdoor_week <-
   ggplot(aes(x = date_hour, y = value, group = respondent_id)) + 
   geom_line(color = "gray70", size = .1) +
   stat_summary(fun = "mean", color = "darkred", geom ="line", aes(group = 1), size = .4) +
-  annotate("text", x = ymd_h("20240807 04"), y =190, label = "Individual Household Data", color = "gray30", size = 1.5) +
+  annotate("text", x = ymd_h("20240807 04"), y =190, label = "Individual Household Data", color = "gray30", size = 2.2) +
   geom_segment(aes(xend = ymd_h("20240804 01"), x = ymd_h("20240804 14"), 
                    yend = 140, y = 180), colour = "gray", size = .1,
                arrow = arrow(length=unit(0.1,"cm"))) +
   theme_classic() + 
   scale_y_continuous(breaks = seq(0, 500, by=100), limits=c(0,500), expand = c(0, 0)) + 
   ylab(expression(paste("PM"[2.5], " (", mu, "g/m"^3, ")"))) +
- #  geom_text(aes(x = ymd_h("20240730 01"), label = who, y = 5), size = 1.5, color= "gray30") + 
+ #  geom_text(aes(x = ymd_h("20240730 01"), label = who, y = 5), size = 2.2, color= "gray30") + 
  # geom_hline(aes(yintercept = 5), linetype = "dashed", color= "gray30", size = .1) +
   coord_cartesian(xlim = c(ymd_h("20240801 01"), ymd_h("20240814 23")), clip = 'off')  + 
   theme(text = element_text(size = 24, family = "Arial")) + 
@@ -172,10 +172,10 @@ p_outdoor_week <-
        # plot.margin = margin(1, 1, 1, 1.01, "cm")) + 
   # geom_hline(aes(yintercept = 250), linetype = "dashed", color= "tomato4", size = .1) +
   # annotate("text", x = ymd_h("20240812 10"), y =270, label = "US EPA - Hazardous", color = "tomato4", 
-  #         size = 1.5) +
+  #         size = 2.2) +
   # geom_hline(aes(yintercept = 125.5), linetype = "dashed", color= "deeppink4", size = .1) +
   # annotate("text", x = ymd_h("20240812 10"), y =140, label = "US EPA - Very Unhealthy", color = "deeppink4", 
-  #          size = 1.5) +
+  #          size = 2.2) +
   coord_cartesian(xlim = c(ymd_h("20240801 01"), ymd_h("20240814 23")), clip = 'off') +
   facet_wrap(~"Ambient Outdoor")
 
@@ -188,7 +188,7 @@ p_top <-
   (p_map + plot_spacer() + p_pm_daily) + 
   plot_annotation(tag_level = "a", tag_suffix = ".") + 
   plot_layout(widths = c(.7, .03, 1)) &
-  theme(text = element_text(size = 5), 
+  theme(text = element_text(size = 6), 
         axis.ticks = element_line(size = .1),
         plot.tag = element_text(size = 8, face = "bold"))
 

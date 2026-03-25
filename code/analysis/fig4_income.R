@@ -68,15 +68,15 @@ p_char_income <-
   theme_classic() +
   expand_limits(y = 0) +
   facet_wrap(~var, scales = "free_y", nrow = 1) +
-  geom_text(aes(x = 2, y = -.1, label = fstat), size = 1.5, color = "#1b9e77") +
-  theme(title = element_text(face = "bold",size = 5),
-        axis.text =element_text(size = 5),
+  geom_text(aes(x = 2, y = -.1, label = fstat), size = 2.2, color = "#1b9e77") +
+  theme(title = element_text(face = "bold",size = 6),
+        axis.text =element_text(size = 6),
         axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
         axis.title.y = element_blank(),
-        strip.text= element_text(size = 5, vjust = 5, hjust = 0, margin = margin(l = -10)),
+        strip.text= element_text(size = 6, vjust = 5, hjust = 0, margin = margin(l = -10)),
         strip.clip = "off",
         strip.background = element_blank(),
         panel.grid= element_blank(),
@@ -113,15 +113,15 @@ p_hyperlocal_income <-
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#d95f02", width = 0, alpha = .4, size = .1) +
   geom_point(size = .5, color = "#d95f02")+
   theme_classic() +
-  geom_text(aes(x = 2.5, y = 0, label = fstat), size = 1.5, color = "#d95f02") +
+  geom_text(aes(x = 2.5, y = 0, label = fstat), size = 2.2, color = "#d95f02") +
   facet_wrap(~title, labeller = label_parsed, scales = "free_y") +
-  theme(title = element_text(face = "bold",size = 5),
-        axis.text =element_text(size = 5),
+  theme(title = element_text(face = "bold",size = 6),
+        axis.text =element_text(size = 6),
         axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
-        strip.text= element_text(size = 5, vjust = 5, hjust = 0, margin = margin(l = -10)),
+        strip.text= element_text(size = 6, vjust = 5, hjust = 0, margin = margin(l = -10)),
         strip.clip = "off", 
         strip.background = element_blank(),
         panel.grid= element_blank(),
@@ -232,8 +232,8 @@ p_decomp_income <-
         axis.ticks = element_line(size = .1),
         legend.position = "none",
         text = element_text(size = 6),
-        strip.text= element_text(size = 5.5),
-        title = element_text(face = "bold",size = 5)); p_decomp_income
+        strip.text= element_text(size = 6.5),
+        title = element_text(face = "bold",size = 6)); p_decomp_income
 
 
 # save this as a plot for figure 4, when we discuss income heterogeneity
@@ -267,15 +267,15 @@ p_income_inf <-
   theme_classic() +
   expand_limits(y = 0) +
   facet_wrap(~"Infiltration Factor") +
-  geom_text(aes(x = 3.5, y = -.05, label = fstat), size = 1.5, color = "#7570b3") +
+  geom_text(aes(x = 3.5, y = -.05, label = fstat), size = 2.2, color = "#7570b3") +
   ylab("Infiltration Factor") +
-  theme(title = element_text(face = "bold", size = 5),
-        axis.text = element_text(size = 5),
+  theme(title = element_text(face = "bold", size = 6),
+        axis.text = element_text(size = 6),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title.x = element_blank(),
         axis.title.y = element_text(size = 6),
-        strip.text = element_text(size = 5),
+        strip.text = element_text(size = 6),
         strip.background = element_blank(),
         panel.grid = element_blank(),
         panel.background = element_rect(fill = "transparent", colour = NA),

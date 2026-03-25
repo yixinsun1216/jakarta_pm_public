@@ -215,12 +215,12 @@ p_sources_coef <-
   geom_point(size = .8, color = "#1b9e77") +
   xlab(expression(PM[2.5] ~ (mu * g~m^-3))) +
   ylab("Effect of\nHyperlocal\nSource") +
-  annotate("text", x = mean_pm_indoor + 1, y = 6.5, label = "mean indoor PM2.5", size = 1.5, color = "#1b9e77", hjust = 0) +
+  annotate("text", x = mean_pm_indoor + 1, y = 6.5, label = "mean indoor PM2.5", size = 2.2, color = "#1b9e77", hjust = 0) +
   theme_classic() +
   theme(panel.grid = element_blank(),
         axis.line.y = element_blank(),
         axis.title.x = element_text(size = 6),
-        axis.title.y = element_text(size = 5, angle = 90),
+        axis.title.y = element_text(size = 6, angle = 90),
         panel.background = element_rect(fill = "transparent", colour = NA),
         plot.background = element_rect(fill = "transparent", colour = NA),
         text = element_text(size = 6),

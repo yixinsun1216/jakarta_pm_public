@@ -10,7 +10,7 @@ theme_inf <-
         plot.background = element_rect(fill = "transparent", colour = NA),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
-        axis.text = element_text(size = 5),
+        axis.text = element_text(size = 6),
         axis.title = element_text(size = 6),
         plot.tag = element_text(size = 6, face = "bold"),
         panel.spacing = unit(0, "lines"), # Remove spacing between panels
@@ -18,7 +18,7 @@ theme_inf <-
         strip.text = element_text(size = 6), # Customize facet strip text
         axis.title.x = element_blank(),
         axis.title.y = element_text(size = 6),
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 6),
         axis.text.y = element_text(size = 6))
 theme_set(theme_inf)
 
@@ -141,7 +141,7 @@ p_inf <-
   facet_wrap(~"Overall") +
   ylim(c(0, 1)) +
   geom_hline(aes(yintercept = .29), color = "#d95f02", linetype = "dashed", size = .1) +
-  geom_text(aes(x = 4, y = .4, label = "US Inf. Rate\n(Lunderberg et. al 2023)"), size = 1.4, color = "#d95f02") +
+  geom_text(aes(x = 4, y = .4, label = "US Inf. Rate\n(Lunderberg et. al 2023)"), size = 2.2, color = "#d95f02") +
   theme(axis.text.x = element_text(size = 4.5)) ; p_inf
 
 
@@ -245,7 +245,7 @@ p_het <-
   facet_grid(~title, scales = "free_x", space = "free_x") +
   scale_color_brewer(palette = "Dark2") +
   ylab("Infiltration Factor") +
-  geom_text(aes(x = 1, y = .02, label = fstat), size = 1.4) +
+  geom_text(aes(x = 1, y = .02, label = fstat), size = 2.2) +
   theme(legend.position = "none") +
   ylim(c(0, 1)) +
   annotate(# Add vertical lines between graphs
@@ -283,7 +283,7 @@ p_spline <-
   ylab("Infiltration Factor") +
   ylim(c(0, 1.22)) +
   xlab(expression(Outdoor ~PM[2.5] ~ Range~ (mu * g~m^-3))) +
-  theme(axis.title.x = element_text(size = 5))  ; p_spline
+  theme(axis.title.x = element_text(size = 6))  ; p_spline
 
 # are households opening their windows in response to outdoor pollution?
 r_open_pm <-
@@ -308,7 +308,7 @@ p_open_pm <-
   ylab("Prob(Window is Open)") +
   ylim(c(0, 1.22)) +
   xlab(expression(Outdoor ~PM[2.5] ~ Range~ (mu * g~m^-3))) +
-  theme(axis.title.x = element_text(size = 5))  ; p_open_pm
+  theme(axis.title.x = element_text(size = 6))  ; p_open_pm
 
 # is there heterogeneity in infiltration based on beliefs about outdoor pollution?
 pm <-
@@ -329,7 +329,7 @@ p_beliefs <-
   ylab("Infiltration Factor") +
   xlab("Beliefs About Outdoor AQI") +
   ylim(c(0, 1.22)) +
-  theme(axis.title.x = element_text(size = 5)) ; p_beliefs
+  theme(axis.title.x = element_text(size = 6)) ; p_beliefs
 
 p_behaviors <-
   wrap_elements((p_spline + p_open_pm + p_beliefs) + plot_layout(width = c(2, 2, 1))) ; p_behaviors
