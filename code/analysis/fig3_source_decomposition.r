@@ -149,9 +149,7 @@ dict <- c(
   "as.factor(room_pmsource_kitchen)1" = "Kitchen source",
   "as.factor(room_pmsource_kitchen)" = "Kitchen source",
   "as.factor(trash_burning_1week_baseline)1 or 2 times" = "Waste Burning (1-2/week)",
-  "as.factor(trash_burning_1week_baseline)3 or more times" = "Waste Burning (2+/week)",
-  "as.factor(trash_burning_1week_baseline)" = "Waste Burning"
-)
+  "as.factor(trash_burning_1week_baseline)3 or more times" = "Waste Burning (3+/week)")
 
 output <-
   output_mean_contrib %>%
@@ -159,7 +157,7 @@ output <-
   full_join(mutate(output_lmg_tbl, term = dplyr::recode(term, !!!dict)), by = "term") %>%
   mutate(
     term = factor(term, levels = c("Outdoor Ambient", "Smoked (24 Hours)", "Waste Burning (1-2/week)",
-                                  "Waste Burning (2+/week)", "Waste Burning", "Kitchen source", "Cooking",
+                                  "Waste Burning (3+/week)", "Waste Burning", "Kitchen source", "Cooking",
                                   "Distance to Main Road (km)"))) %>%
   arrange(term)  ; output
 
@@ -202,7 +200,7 @@ coef_pm <-
   filter(term %in% source_terms) %>%
   mutate(term = dplyr::recode(term, !!!dict),
          term = factor(term, levels = rev(c("Smoked (24 Hours)",
-                                            "Waste Burning (2+/week)",
+                                            "Waste Burning (3+/week)",
                                             "Waste Burning (1-2/week)",
                                             "Kitchen source",
                                             "Cooking",
@@ -237,7 +235,7 @@ p_contributions <-
   mutate(outdoor = str_detect(term, "Outdoor"),
          term = str_wrap(term, 12),
          term = factor(term, levels = c("Distance to\nMain Road\n(km)", "Cooking", "Kitchen\nsource",
-                                        "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
+                                        "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(3+/week)",
                                         "Smoked (24\nHours)", "Outdoor\nAmbient"))) %>%
   ggplot(aes(y = term, x = frac, fill = outdoor)) +
   geom_col(width = .75) +

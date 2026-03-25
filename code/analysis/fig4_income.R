@@ -5,11 +5,12 @@ gc()
 # read in data
 # ===========================================================
 pm <-
-  read_rds(file.path(ddir, "df_reg.rds"))  %>%
+  read_rds(file.path(ddir, "df_reg.rds")) %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          trash = trash_burning_1week_baseline != "Never",
          income_high = hh_income >= 4,
-         cooking = replace_na(cooking, 0))
+         cooking = replace_na(cooking, 0),
+         trash = ifelse(trash_burning_1week_baseline == "", NA, trash))
 
 # read in survey data
 survey <-
@@ -19,6 +20,7 @@ survey <-
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline,
          day_of_week = lubridate::wday(starttime_baseline, label = TRUE),
          trash = trash_burning_1week_baseline != "Never",
+         trash = ifelse(trash_burning_1week_baseline == "", NA, trash),
          open_room = close_door_1hour == 1 | close_window_1hour == 1,
          date_hour = floor_date(starttime, "hour"))
 

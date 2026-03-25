@@ -419,9 +419,7 @@ dict_sources <- c(
   "as.factor(room_pmsource_kitchen)1" = "Kitchen source",
   "as.factor(room_pmsource_kitchen)" = "Kitchen source",
   "as.factor(trash_burning_1week_baseline)1 or 2 times" = "Waste Burning (1-2/week)",
-  "as.factor(trash_burning_1week_baseline)3 or more times" = "Waste Burning (2+/week)",
-  "as.factor(trash_burning_1week_baseline)" = "Waste Burning"
-)
+  "as.factor(trash_burning_1week_baseline)3 or more times" = "Waste Burning (3+/week)")
 
 compute_mean_contrib_app <- function(model, rhs_fml, data, outcome_var) {
   X <- stats::model.matrix(rhs_fml, data = data)
@@ -499,7 +497,7 @@ output_spike <-
   full_join(mutate(output_lmg_spike_tbl, term = dplyr::recode(term, !!!dict_sources)), by = "term") %>%
   mutate(lmg = scales::percent(lmg, accuracy = 1),
          term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning (1-2/week)",
-                                        "Waste Burning (2+/week)", "Waste Burning", "Kitchen source", "Cooking",
+                                        "Waste Burning (3+/week)", "Waste Burning", "Kitchen source", "Cooking",
                                         "Distance to Main Road (km)"))) %>%
   arrange(term)
 
@@ -534,7 +532,7 @@ coef_spike <-
   filter(term %in% spike_source_terms) %>%
   mutate(term = dplyr::recode(term, !!!dict_sources),
          term = factor(term, levels = rev(c("Smoking Household",
-                                            "Waste Burning (2+/week)",
+                                            "Waste Burning (3+/week)",
                                             "Waste Burning (1-2/week)",
                                             "Kitchen source",
                                             "Cooking",
@@ -569,7 +567,7 @@ p_spike <-
   mutate(outdoor = str_detect(term, "Outdoor"),
          term = str_wrap(term, 12),
          term = factor(term, levels = c("Distance to\nMain Road\n(km)", "Cooking", "Kitchen\nsource",
-                                        "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(2+/week)",
+                                        "Waste\nBurning\n(1-2/week)", "Waste\nBurning\n(3+/week)",
                                         "Smoking\nHousehold", "Outdoor\nAmbient"))) %>%
   ggplot(aes(y = term, x = frac, fill = outdoor)) +
   geom_col(width = .75) +

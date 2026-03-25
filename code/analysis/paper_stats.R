@@ -11,7 +11,8 @@ pacman::p_load(tidyverse, lubridate, fixest, broom, car, data.table)
 pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor),
-         cooking = replace_na(cooking, 0))
+         cooking = replace_na(cooking, 0),
+         trash_burning_1week_baseline = as.factor(ifelse(as.character(trash_burning_1week_baseline) == "", "Missing", as.character(trash_burning_1week_baseline))))
 
 survey <- read_rds(file.path(ddir, "df_survey.rds"))
 
@@ -225,7 +226,7 @@ stats$smoking_mean_contribution_pct <- round(
   smoke_coef$estimate * smoke_prev / mean_indoor * 100, 0)
 # tex: "smoking explains approximately 19% of the variation in mean indoor PM2.5" (line 167)
 
-# waste burning 2+/week prevalence and contribution
+# waste burning 3+/week prevalence and contribution
 wb2_coef <- source_tidy %>%
   filter(str_detect(term, "trash_burning.*3 or more|trash_burning.*2")) %>%
   filter(str_detect(term, "3 or more|2\\+")) %>%

@@ -169,23 +169,23 @@ respondent <-
   respondent %>%
   dplyr::select(-starts_with("who_"))
 
-# impute median for missing covariates
-respondent <-
-  respondent %>%
-  mutate(
-    smoke24_endline = if_else(is.na(smoke24_endline),
-                              median(smoke24_endline, na.rm = TRUE),
-                              as.double(smoke24_endline)),
-    room_pmsource_kitchen = if_else(is.na(room_pmsource_kitchen),
-                                    median(room_pmsource_kitchen, na.rm = TRUE),
-                                    as.double(room_pmsource_kitchen)),
-    trash_burning_1week_baseline = if_else(is.na(trash_burning_1week_baseline),
-                                           levels(trash_burning_1week_baseline)[
-                                             which.max(table(trash_burning_1week_baseline))],
-                                           as.character(trash_burning_1week_baseline)),
-    trash_burning_1week_baseline = factor(trash_burning_1week_baseline),
-    trash_burning_1week_baseline = relevel(trash_burning_1week_baseline, ref = "Never")
-  )
+# # impute median for missing covariates
+# respondent <-
+#   respondent %>%
+#   mutate(
+#     smoke24_endline = if_else(is.na(smoke24_endline),
+#                               median(smoke24_endline, na.rm = TRUE),
+#                               as.double(smoke24_endline)),
+#     room_pmsource_kitchen = if_else(is.na(room_pmsource_kitchen),
+#                                     median(room_pmsource_kitchen, na.rm = TRUE),
+#                                     as.double(room_pmsource_kitchen)),
+#     trash_burning_1week_baseline = if_else(is.na(trash_burning_1week_baseline),
+#                                            levels(trash_burning_1week_baseline)[
+#                                              which.max(table(trash_burning_1week_baseline))],
+#                                            as.character(trash_burning_1week_baseline)),
+#     trash_burning_1week_baseline = factor(trash_burning_1week_baseline),
+#     trash_burning_1week_baseline = relevel(trash_burning_1week_baseline, ref = "Never")
+#   )
 
 
 cat("Survey:", nrow(respondent), "respondents\n")
