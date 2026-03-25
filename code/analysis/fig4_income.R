@@ -284,7 +284,7 @@ p_income_inf <-
 # =========================================================================
 # Assemble figure 4:
 # a = p_decomp_income, b = p_hyperlocal_income,
-# c = p_income_inf, d = p_decomp_smoke, e = p_char_income
+# c = p_income_inf, d = p_char_income
 # =========================================================================
 (p_decomp_income + p_hyperlocal_income + plot_layout(widths = c(2, 2))) /
   ((p_income_inf + p_char_income) + plot_layout(widths = c(1, 2))) +
