@@ -163,14 +163,14 @@ output <-
 
 options(knitr.kable.NA = '')
 output %>%
-  mutate(frac = scales::percent(frac, accuracy = 1),
-      lmg = scales::percent(lmg, accuracy = 1)) %>%
+  mutate(frac = gsub("%", "\\\\%", scales::percent(frac, accuracy = 1)),
+      lmg = gsub("%", "\\\\%", scales::percent(lmg, accuracy = 1))) %>%
    dplyr::select("Source" = term, "Reg. Estimate" = estimate, "p.value" = pvalue,
       "Mean Value of Source" = mean_x, "Mean Contribution" = frac,
-      "R2 Contribution" = lmg) %>%
+      "$R^2$ Contribution" = lmg) %>%
   knitr::kable(format.args = list(big.mark = ","),
               digits = c(NA, 2, 3, 2, 1, 1), format = "latex",
-              booktabs = TRUE, align = "c") %>%
+              booktabs = TRUE, align = "c", escape = FALSE) %>%
   #kableExtra::kable_styling(full_width = FALSE) %>%
   writeLines(file.path(gdir, "output/tables/mean_contribution_table.tex"))
 

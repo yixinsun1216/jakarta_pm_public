@@ -56,7 +56,7 @@ p_map <-
   theme_map() +
   scale_shape_manual(values = c(17, 16)) + 
   scale_color_brewer(palette = "Dark2") + 
-  theme(legend.text=element_text(size=4), 
+  theme(legend.text=element_text(size=6), 
         legend.key.size = unit(0.3, "cm"),
         legend.key = element_rect(fill = "transparent", colour = NA),
         legend.title = element_blank(), 
@@ -108,7 +108,7 @@ p_pm_daily <-
         #legend.direction = "horizontal",
         legend.key.size = unit(0.2, "cm"),
         legend.title = element_blank(), 
-        legend.text = element_text(size = 4.5),
+        legend.text = element_text(size = 6),
         axis.title.x = element_blank(),
         axis.text = element_text(size = 6), 
         axis.title = element_text(size = 6),

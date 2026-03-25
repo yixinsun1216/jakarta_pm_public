@@ -142,7 +142,7 @@ p_inf <-
   ylim(c(0, 1)) +
   geom_hline(aes(yintercept = .29), color = "#d95f02", linetype = "dashed", size = .1) +
   geom_text(aes(x = 4, y = .4, label = "US Inf. Rate\n(Lunderberg et. al 2023)"), size = 2.2, color = "#d95f02") +
-  theme(axis.text.x = element_text(size = 4.5)) ; p_inf
+  theme(axis.text.x = element_text(size = 6)) ; p_inf
 
 
 # ==================================================

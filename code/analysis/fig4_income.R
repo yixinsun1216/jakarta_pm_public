@@ -71,7 +71,7 @@ p_char_income <-
   geom_text(aes(x = 2, y = -.1, label = fstat), size = 2.2, color = "#1b9e77") +
   theme(title = element_text(face = "bold",size = 6),
         axis.text =element_text(size = 6),
-        axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
+        axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
@@ -117,7 +117,7 @@ p_hyperlocal_income <-
   facet_wrap(~title, labeller = label_parsed, scales = "free_y") +
   theme(title = element_text(face = "bold",size = 6),
         axis.text =element_text(size = 6),
-        axis.text.x = element_text(size = 4.5, angle = 45, hjust = 1),
+        axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),

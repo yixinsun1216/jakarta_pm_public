@@ -52,11 +52,26 @@ rp_to_usd <- 0.000062
 # This function removes those lines so notes can be written in Overleaf.
 strip_etable_notes <- function(filepath) {
   txt <- readLines(filepath)
+  # remove auto-generated note lines
   note_lines <- grepl(
     "^\\\\multicolumn\\{[0-9]+\\}\\{[lrc]\\}\\{\\\\emph\\{",
     txt, perl = TRUE
   )
-  writeLines(txt[!note_lines], filepath)
+  txt <- txt[!note_lines]
+  # remove \begingroup / \par\endgroup wrappers and standalone \centering
+  txt <- txt[!grepl("^\\\\begingroup\\s*$", txt, perl = TRUE)]
+  txt <- txt[!grepl("^\\\\par\\\\endgroup\\s*$", txt, perl = TRUE)]
+  txt <- txt[!grepl("^\\\\centering\\s*$", txt, perl = TRUE)]
+  # replace top double-midrule with \toprule
+  txt <- gsub("\\\\tabularnewline\\s+\\\\midrule\\s+\\\\midrule",
+              "\\\\toprule", txt, perl = TRUE)
+  # replace bottom double-midrule with \bottomrule
+  bottom_idx <- grep("^\\s*\\\\midrule\\s+\\\\midrule\\s*$", txt, perl = TRUE)
+  if (length(bottom_idx) > 0) {
+    txt[max(bottom_idx)] <- gsub("\\\\midrule\\s+\\\\midrule",
+                                  "\\\\bottomrule", txt[max(bottom_idx)])
+  }
+  writeLines(txt, filepath)
 }
 
 # =========================================================================
@@ -216,6 +231,12 @@ feols(as.formula(paste("sensor_mindist ~", xvars)), data = hh_mindist)  %>%
          digits = "r2", replace = TRUE,
          tex = TRUE, file = file.path(gdir, "output/tables/sensor_selection.tex"))
 strip_etable_notes(file.path(gdir, "output/tables/sensor_selection.tex"))
+
+txt <- readLines(file.path(gdir, "output/tables/sensor_selection.tex"))
+end_idx1 <- which(grepl("error", txt))
+end_idx2 <- which(grepl("Signif", txt))
+txt <- c(txt[-c(end_idx1, end_idx2)])
+writeLines(txt, file.path(gdir, "output/tables/sensor_selection.tex"))
 
 
 # =========================================================================
@@ -378,6 +399,13 @@ etable(reg_outdoor_burning, reg_outdoor_burning_2k,
       file = file.path(gdir, "output/tables/reg_outdoor_burning.tex"))
 strip_etable_notes(file.path(gdir, "output/tables/reg_outdoor_burning.tex"))
 
+# Append custom notes
+txt <- readLines(file.path(gdir, "output/tables/reg_outdoor_burning.tex"))
+end_idx1 <- which(grepl("error", txt))
+end_idx2 <- which(grepl("Signif", txt))
+txt <- c(txt[-c(end_idx1, end_idx2)])
+writeLines(txt, file.path(gdir, "output/tables/reg_outdoor_burning.tex"))
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ------- Density of distance to roads --------------
@@ -499,7 +527,7 @@ output_spike <-
   output_spike_contrib %>%
   mutate(term = dplyr::recode(term, !!!dict_sources)) %>%
   full_join(mutate(output_lmg_spike_tbl, term = dplyr::recode(term, !!!dict_sources)), by = "term") %>%
-  mutate(lmg = scales::percent(lmg, accuracy = 1),
+  mutate(lmg = gsub("%", "\\\\%", scales::percent(lmg, accuracy = 1)),
          term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning (1-2/week)",
                                         "Waste Burning (3+/week)", "Waste Burning", "Kitchen source", "Cooking",
                                         "Distance to Main Road (km)"))) %>%
@@ -507,13 +535,13 @@ output_spike <-
 
 options(knitr.kable.NA = '')
 output_spike %>%
-  mutate(frac = scales::percent(frac, accuracy = 1)) %>%
+  mutate(frac = gsub("%", "\\\\%", scales::percent(frac, accuracy = 1))) %>%
   dplyr::select("Source" = term, "Reg. Estimate" = estimate, "p.value" = pvalue,
       "Mean Value of Source" = mean_x, "Mean Contribution" = frac,
-      "R2 Contribution" = lmg) %>%
+      "$R^2$ Contribution" = lmg) %>%
   knitr::kable(format.args = list(big.mark = ","),
               digits = c(NA, 3, 3, 2, 1, 1), format = "latex",
-              booktabs = TRUE, align = "c") %>%
+              booktabs = TRUE, align = "c", escape = FALSE) %>%
   writeLines(file.path(gdir, "output/tables/spike_contribution_table.tex"))
 # (kable adds no auto-notes, so no stripping needed)
 
