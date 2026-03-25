@@ -4,13 +4,13 @@ gc()
 
 # read in pm data
 pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
-  mutate(cooking = replace_na(cooking, 0))
+  dplyr::mutate(cooking = replace_na(cooking, 0))
 
 # HH-level PM averages
 pm_hh <-
   pm %>%
-  group_by(respondent_id) %>%
-  summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
+  dplyr::group_by(respondent_id) %>%
+  dplyr::summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
             pm25outdoor_mean = mean(pm25_outdoor3, na.rm = TRUE),
             .groups = "drop")
 
@@ -26,11 +26,11 @@ rm(pm_dt)
 survey <-
   read_rds(file.path(ddir, "df_survey.rds")) %>%
   left_join(pm_hh, by = "respondent_id") %>%
-  mutate(date_hour_baseline = floor_date(as.POSIXct(starttime_baseline), "hour")) %>%
+  dplyr::mutate(date_hour_baseline = floor_date(as.POSIXct(starttime_baseline), "hour")) %>%
   left_join(pm_outdoor24, by = c("respondent_id", "date_hour_baseline" = "date_hour")) %>%
-  rename(pm25_outdoor24_baseline = pm25_outdoor24) %>%
+  dplyr::rename(pm25_outdoor24_baseline = pm25_outdoor24) %>%
   dplyr::select(-date_hour_baseline) %>%
-  mutate(income_high = hh_income >= 4,
+  dplyr::mutate(income_high = hh_income >= 4,
          house_size = case_when(housing_room_number < 5 ~ "Small",
                                 housing_room_number >= 5 ~ "Big"),
          house_size = factor(house_size, levels = c("Small", "Big")))
@@ -113,11 +113,11 @@ susenas_hoh <-
 
 susenas_hh <-
   susenas %>%
-  group_by(urut, wert, R301, R302, R1817, R2001C) %>%
-  summarise(count_smokers = sum(R1206 %in% c(1, 2)) + sum(R1207 %in% c(1, 2)),
+  dplyr::group_by(urut, wert, R301, R302, R1817, R2001C) %>%
+  dplyr::summarise(count_smokers = sum(R1206 %in% c(1, 2)) + sum(R1207 %in% c(1, 2)),
             hh_exp = sum(exp_pc)) %>%
   ungroup %>%
-  summarise(hh_smokers_mean = wtd.mean(count_smokers, wert),
+  dplyr::summarise(hh_smokers_mean = wtd.mean(count_smokers, wert),
             hh_smokers_sd = wtd.var(count_smokers, wert),
             hhexp_mean = wtd.mean(hh_exp*rp_to_usd, wert),
             hhexp_sd = sqrt(wtd.var(hh_exp*rp_to_usd, wert)),
@@ -138,7 +138,7 @@ susenas_mean <-
   mutate(metric = if_else(statistic == "mean", "estimate", "std.error")) %>%
   mutate(value = if_else(statistic == "sd", paste0("(", round(value,digits = 2), ")"), as.character(round(value, digits = 2)))) %>%
   arrange(variable, statistic) %>%
-  rename(pop = value) %>%
+  dplyr::rename(pop = value) %>%
   dplyr::select(-metric)
 
 
@@ -148,13 +148,13 @@ table_out <-
   mean_sd %>%
   left_join(n_all) %>%
   left_join(susenas_mean) %>%
-  mutate(variable = factor(variable, levels = vars),
+  dplyr::mutate(variable = factor(variable, levels = vars),
          value = if_else(statistic == "sd", paste0("(", round(value,digits = 2), ")"), as.character(round(value, digits = 2))),
          value = if_else(variable %in% c("Female", "hoh_school_secondary", "hoh_school_tertiary", "lpg",
                                          "housing_ac_baseline", "who_ind_employed_hoh_baseline") & metric == "std.error",
                          "", value)) %>%
   arrange(variable, statistic) %>%
-  mutate(variable = case_when(variable == "age" ~ "Age",
+  dplyr::mutate(variable = case_when(variable == "age" ~ "Age",
                               variable == "who_ind_employed_baseline" ~ "Employed",
                               variable == "hh_membercount_baseline" ~ "HH Size",
                               variable == "child_count_baseline" ~ "Number of Children",
@@ -166,7 +166,7 @@ table_out <-
                               variable == "lpg" ~ "LPG Stove",
                               variable == "hh_smokers" ~ "Number of Smokers",
                               TRUE ~ variable)) %>%
-  mutate(variable = if_else(statistic == "sd", "", variable),
+  dplyr::mutate(variable = if_else(statistic == "sd", "", variable),
          N = if_else(statistic == "sd", "", format(N, digits = 2))) %>%
   dplyr::select(Variable = variable, `Control Mean` = value, N, `Population Mean` = pop) %>%
   mutate_all(~if_else(is.na(.x), "", .x))
@@ -183,16 +183,16 @@ table_out %>%
 # =========================================================================
 hh_pm_indoor <-
   pm %>%
-  group_by(respondent_id, hour) %>%
-  summarise(pm_indoor = mean(pm25_indoor, na.rm = TRUE)) %>%
-  group_by(respondent_id) %>%
-  summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE))
+  dplyr::group_by(respondent_id, hour) %>%
+  dplyr::summarise(pm_indoor = mean(pm25_indoor, na.rm = TRUE)) %>%
+  dplyr::group_by(respondent_id) %>%
+  dplyr::summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE))
 
 hh_mindist <-
   survey %>%
   left_join(hh_pm_indoor, by = "respondent_id") %>%
   # fill in missing pm25_indoor with average
-  mutate(pm25_indoor = if_else(is.na(pm25_indoor), mean(hh_pm_indoor$pm25_indoor, na.rm = TRUE), pm25_indoor),
+  dplyr::mutate(pm25_indoor = if_else(is.na(pm25_indoor), mean(hh_pm_indoor$pm25_indoor, na.rm = TRUE), pm25_indoor),
         housing_room_number = if_else(is.na(housing_room_number), mean(housing_room_number, na.rm = TRUE), housing_room_number))
 
 xvars <- "pm25_indoor + pm25_outdoor24_baseline +income_usd  + housing_room_number + housing_ac +
@@ -226,14 +226,14 @@ tidy_up <- function(r){
 }
 
 pm %>%
-  group_by(respondent_id, income_quart) %>%
-  summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE),
+  dplyr::group_by(respondent_id, income_quart) %>%
+  dplyr::summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE),
             pm25_outdoor = mean(pm25_outdoor3, na.rm = TRUE))
 
 pm_hh_hour <-
   pm %>%
-  group_by(respondent_id, hour, income_quart) %>%
-  summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE),
+  dplyr::group_by(respondent_id, hour, income_quart) %>%
+  dplyr::summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE),
             pm25_outdoor = mean(pm25_outdoor3, na.rm = TRUE))
 
 r_outdoor1 <- feols(pm25_outdoor3 ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour)
@@ -596,8 +596,8 @@ ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.png"),
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 hh_missing <-
   pm %>%
-  group_by(respondent_id) %>%
-  summarise(n_total = n(),
+  dplyr::group_by(respondent_id) %>%
+  dplyr::summarise(n_total = n(),
             n_missing = sum(is.na(pm25_indoor)),
             frac_missing = n_missing / n_total,
             .groups = "drop")
@@ -625,14 +625,14 @@ ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.png"),
 # Robustness: infiltration under alternative weighting schemes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 hh_weights <- pm %>%
-  group_by(respondent_id) %>%
-  summarise(prop_observed_hh = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hh = 1 / prop_observed_hh)
+  dplyr::group_by(respondent_id) %>%
+  dplyr::summarise(prop_observed_hh = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
+  dplyr::mutate(weight_hh = 1 / prop_observed_hh)
 
 hh_hour_weights <- pm %>%
-  group_by(respondent_id, hour) %>%
-  summarise(prop_observed_hh_hour = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
-  mutate(weight_hh_hour = 1 / prop_observed_hh_hour)
+  dplyr::group_by(respondent_id, hour) %>%
+  dplyr::summarise(prop_observed_hh_hour = mean(!is.na(pm25_indoor)), .groups = "drop") %>%
+  dplyr::mutate(weight_hh_hour = 1 / prop_observed_hh_hour)
 
 pm_weights <- pm %>%
   left_join(hh_weights, by = "respondent_id") %>%
@@ -729,8 +729,8 @@ gc()
 survey_boe <-
   read_rds(file.path(ddir, "df_survey.rds")) %>%
   left_join(read_rds(file.path(ddir, "df_reg.rds")) %>%
-              group_by(respondent_id) %>%
-              summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
+              dplyr::group_by(respondent_id) %>%
+              dplyr::summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
                         pm25outdoor_mean = mean(pm25_outdoor3, na.rm = TRUE),
                         .groups = "drop"),
             by = "respondent_id") %>%
