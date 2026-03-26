@@ -489,14 +489,14 @@ compute_mean_contrib_app <- function(model, rhs_fml, data, outcome_var) {
 
 reg_spikes <- feols(
   fixest::xpd(spike ~ .[rhs_fml] | hour + week),
-  data = pm,
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != ""),
   cluster = ~ respondent_id + date_hour
 )
 
 output_spike_contrib <- compute_mean_contrib_app(
   model = reg_spikes,
   rhs_fml = rhs_fml_sources,
-  data = pm,
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != ""),
   outcome_var = "spike"
 ) %>%
   filter(!term %in% c("temp_outdoor3", "humidity_outdoor3"))
@@ -511,7 +511,7 @@ reg_spike_lm <- lm(
     dist_primary +
     as.factor(hour) +
     as.factor(week),
-  data = pm
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != ""),
 )
 
 compute_lmg_tbl_app <- function(lm_model) {
@@ -528,9 +528,10 @@ output_spike <-
   mutate(term = dplyr::recode(term, !!!dict_sources)) %>%
   full_join(mutate(output_lmg_spike_tbl, term = dplyr::recode(term, !!!dict_sources)), by = "term") %>%
   mutate(lmg = gsub("%", "\\\\%", scales::percent(lmg, accuracy = 1)),
-         term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning (1-2/week)",
-                                        "Waste Burning (3+/week)", "Waste Burning", "Kitchen source", "Cooking",
-                                        "Distance to Main Road (km)"))) %>%
+         term = factor(term, levels = c("Outdoor Ambient", "Smoking Household", "Waste Burning", "Kitchen source", "Cooking",
+                                        "Distance to Main Road (km)",
+                                        "Waste Burning (1-2/week)",
+                                        "Waste Burning (3+/week)"))) %>%
   arrange(term)
 
 options(knitr.kable.NA = '')
@@ -940,3 +941,4 @@ lines <- c(
 output_path <- file.path(gdir, "output/tables/si_table_boe.tex")
 writeLines(lines, output_path)
 message("Written: ", output_path)
+

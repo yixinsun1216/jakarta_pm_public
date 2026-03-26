@@ -109,7 +109,7 @@ rhs_fml_sources <- ~ as.factor(trash_burning_1week_baseline) +
 
 reg_fe <- feols(
   fixest::xpd(pm25_indoor ~ .[rhs_fml] | hour + week) ,
-  data = pm,
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != ""),
   cluster = ~ respondent_id + date_hour
 )
 
@@ -118,7 +118,7 @@ etable(reg_fe)
 output_mean_contrib <- compute_mean_contrib(
   model = reg_fe,
   rhs_fml = rhs_fml_sources,
-  data = pm,
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != ""),
   outcome_var = "pm25_indoor"
 ) %>%
   filter(!term %in% c("temp_outdoor3", "humidity_outdoor3"))
@@ -133,7 +133,7 @@ reg_lm <- lm(
     cooking +
     dist_primary +
    as.factor(hour) + as.factor(week),
-  data = pm
+  data = pm %>% dplyr::filter(trash_burning_1week_baseline != "")
 )
 
 output_lmg_tbl <- compute_lmg_tbl(reg_lm)
@@ -152,13 +152,14 @@ dict <- c(
   "as.factor(trash_burning_1week_baseline)3 or more times" = "Waste Burning (3+/week)")
 
 output <-
-  output_mean_contrib %>%
+  output_mean_contrib  %>%
   mutate(term = dplyr::recode(term, !!!dict)) %>%
-  full_join(mutate(output_lmg_tbl, term = dplyr::recode(term, !!!dict)), by = "term") %>%
+  full_join(mutate(output_lmg_tbl, term = dplyr::recode(term, !!!dict)), by = "term")  %>%
   mutate(
-    term = factor(term, levels = c("Outdoor Ambient", "Smoked (24 Hours)", "Waste Burning (1-2/week)",
-                                  "Waste Burning (3+/week)", "Waste Burning", "Kitchen source", "Cooking",
-                                  "Distance to Main Road (km)"))) %>%
+    term = factor(term, levels = c("Outdoor Ambient", "Smoked (24 Hours)",  "Kitchen source", "Cooking",
+                                  "Distance to Main Road (km)",
+                                  "Waste Burning (1-2/week)",
+                                  "Waste Burning (3+/week)"))) %>%
   arrange(term)  ; output
 
 options(knitr.kable.NA = '')
