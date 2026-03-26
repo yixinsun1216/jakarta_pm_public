@@ -341,14 +341,6 @@ decomp_remainder_smoke <-
          term = "Other\n(Hyperlocal)") %>%
   dplyr::select(smoke_group, term, contribution)
 
-decomp_all_smoke <-
-  bind_rows(decomp_by_smoke, decomp_remainder_smoke) %>%
-  mutate(
-    term = factor(term, levels = c("Smoking\nHousehold", "Other\n(Hyperlocal)", "Outdoor\nAmbient")),
-    smoke_label = if_else(smoke_group == "0", "Non-smoking", "Smoking"),
-    smoke_label = factor(smoke_label, levels = c("Non-smoking", "Smoking"))
-  )
-
 # label positions for the taller bar (Smoking)
 decomp_labels_smoke <- decomp_all_smoke %>%
   filter(smoke_label == "Smoking") %>%
