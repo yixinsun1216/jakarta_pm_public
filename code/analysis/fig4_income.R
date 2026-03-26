@@ -384,7 +384,104 @@ p_income_inf <-
         panel.background = element_rect(fill = "transparent", colour = NA),
         plot.background = element_rect(fill = "transparent", colour = NA),
         legend.position = "none") ; p_income_inf
-  
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Source decomposition by smoking status (analogous to p_decomp_income)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+reg_decomp_smoke <- feols(
+  pm25_indoor ~
+    as.factor(smoke24_endline) +
+    i(as.factor(smoke24_endline), pm25_outdoor3) +
+    i(as.factor(trash_burning_1week_baseline), as.factor(smoke24_endline), ref = "Never") +
+    i(as.factor(room_pmsource_kitchen), as.factor(smoke24_endline), ref = 0) +
+    i(cooking, as.factor(smoke24_endline), ref = 0) +
+    i(as.factor(smoke24_endline), dist_primary) |
+    hour + week,
+  data = pm,
+  cluster = ~respondent_id + date_hour
+)
+
+coefs_decomp_smoke <- coef(reg_decomp_smoke)
+smoke_groups <- c("0", "1")
+
+decomp_by_smoke <- map_df(smoke_groups, function(sg) {
+  data_sg <- filter(pm, smoke24_endline == as.numeric(sg))
+
+  # outdoor ambient: group-specific infiltration × group mean outdoor PM
+  outdoor_coef_name <- paste0("as.factor(smoke24_endline)::", sg, ":pm25_outdoor3")
+  beta_outdoor <- unname(coefs_decomp_smoke[outdoor_coef_name])
+  mean_outdoor <- mean(data_sg$pm25_outdoor3, na.rm = TRUE)
+
+  # smoking effect: main effect of as.factor(smoke24_endline)1
+  # only applies to smoking group; 0 for non-smokers (reference)
+  smoke_contrib <- if (sg == "1") {
+    unname(coefs_decomp_smoke["as.factor(smoke24_endline)1"])
+  } else {
+    0
+  }
+
+  tibble(
+    smoke_group = sg,
+    term         = c("Outdoor\nAmbient", "Smoking\nHousehold"),
+    contribution = c(beta_outdoor * mean_outdoor, smoke_contrib)
+  )
+})
+
+# observed mean indoor PM by smoking group
+r_indoor_smoke <-
+  feols(pm25_indoor ~ as.factor(smoke24_endline) + 0, data = pm,
+        cluster = ~respondent_id + date_hour) %>%
+  tidy(conf.int = TRUE) %>%
+  dplyr::rename(smoke_group = term) %>%
+  mutate(smoke_group = str_extract(smoke_group, "[01]$"))
+
+# residual = observed mean - (outdoor + waste burning)
+decomp_remainder_smoke <-
+  decomp_by_smoke %>%
+  group_by(smoke_group) %>%
+  summarise(contribution = sum(contribution, na.rm = TRUE), .groups = "drop") %>%
+  left_join(r_indoor_smoke, by = "smoke_group") %>%
+  mutate(contribution = estimate - contribution,
+         term = "Other\n(Hyperlocal)") %>%
+  dplyr::select(smoke_group, term, contribution)
+
+# label positions for the taller bar (Smoking)
+decomp_labels_smoke <- decomp_all_smoke %>%
+  filter(smoke_label == "Smoking") %>%
+  arrange(term) %>%
+  mutate(cumtop = cumsum(contribution),
+         y_mid  = cumtop - contribution / 2,
+         term_label = as.character(term))
+
+decomp_labels_smoke <- tribble(~smoke_label, ~y_mid, ~term,
+                    "Smoking", 39, "Smoking\nHousehold",
+                    "Non-smoking", 27, "Other\n(Hyperlocal)",
+                    "Smoking", 13, "Outdoor\nAmbient") 
+
+
+p_decomp_smoke <-
+  decomp_all_smoke %>%
+  mutate(smoke_label = factor(smoke_label, levels = c("Smoking", "Non-smoking"))) %>%
+  ggplot(aes(x = smoke_label, y = contribution, fill = term)) +
+  geom_col(width = .75) +
+  geom_text(data = decomp_labels_smoke,
+            aes(y = y_mid, label = term),
+            size = 1.3, color = "white", lineheight = 0.85) +
+  geom_hline(yintercept = 0, linewidth = .2) +
+  scale_fill_brewer(palette = "Dark2") +
+  ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
+  facet_wrap(~"Indoor PM2.5") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(axis.title.y = element_text(angle = 90),
+        axis.title.x = element_blank(),
+        strip.background = element_blank(),
+        axis.ticks = element_line(size = .1),
+        legend.position = "none",
+        text = element_text(size = 6),
+        strip.text = element_text(size = 5.5),
+        title = element_text(face = "bold", size = 5)) ; p_decomp_smoke
+
 
 # =========================================================================
 # Assemble figure 4:
