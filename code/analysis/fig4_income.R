@@ -199,10 +199,10 @@ p_income <-
   coord_cartesian(ylim = c(0, 90)) +
   ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
   xlab("Income quartile") +
-  
   theme(
     title = element_text(face = "bold", size = 6),
     axis.text = element_text(size = 6),
+    axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
     axis.line = element_line(linewidth = 0.1),
     axis.ticks = element_line(linewidth = 0.1),
     axis.title = element_text(size = 6),
@@ -218,8 +218,17 @@ p_income <-
     legend.text = element_text(size = 6),
     legend.background = element_rect(fill = "transparent"),
     legend.key = element_rect(fill = "transparent"),
-    legend.key.size = unit(0.4, "cm")
-  ) ; p_income
+    legend.key.size = unit(0.4, "cm"),
+    strip.text = element_text(size = 6, hjust=0),
+    strip.background = element_blank(),
+    legend.spacing.y = unit(-0.3, "cm"),
+    legend.key.height = unit(0.05, "cm")) +
+    guides(color = guide_legend(ncol = 1)) +
+  facet_wrap(
+    ~"PM[2.5]~(mu*g/m^3)",
+    labeller = label_parsed
+  ) +
+  labs(y=NULL); p_income
 
 
 
@@ -319,7 +328,7 @@ p_decomp_income <-
   scale_fill_manual(values=c("#7570B3", "#66A61E", "#D95F02")) +
   ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
   xlab("Income quartile") +
-  facet_wrap(~"Indoor PM2.5") +
+  facet_wrap(~"Indoor PM2.5 Decomposition") +
   scale_y_continuous(expand = c(0, 0)) +
   theme(axis.title.y = element_text(angle = 90),
         strip.background = element_blank(), 
@@ -382,7 +391,7 @@ p_income_inf <-
 # a = p_decomp_income, b = p_hyperlocal_income,
 # c = p_income_inf, d = p_char_income
 # =========================================================================
-(p_income + p_decomp_income + p_hyperlocal_income + plot_layout(widths = c(1.5, 2, 2))) /
+(p_income + p_hyperlocal_income  + p_decomp_income + plot_layout(widths = c(1, 2.2, 1.9))) /
   ((p_income_inf + p_char_income) + plot_layout(widths = c(1, 2))) +
   plot_layout(heights = c(1, 0.75)) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") &
