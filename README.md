@@ -1,6 +1,6 @@
 # Read Me
 
-This repository contains the public analysis pipeline for a Jakarta household air pollution project. At a high level, the project combines hourly indoor PM2.5 measurements from in-home monitors, outdoor PM2.5 measurements from a distributed ambient sensor network, and household survey data to study three main questions:
+This repository contains the public analysis pipeline for the paper Beyond Stoves and Outdoor Monitors: Indoor PM2.5 Exposure and Inequality in a Fast Growing Megacity (Sun, Sorin, Suryadarma, Rahut, Resosudarmo). At a high level, the project combines hourly indoor PM2.5 measurements from in-home monitors, outdoor PM2.5 measurements from a distributed ambient sensor network, and household survey data to study three main questions:
 
 1. How high indoor PM2.5 exposures are in the study sample.
 2. How much outdoor pollution infiltrates indoors.
@@ -16,9 +16,11 @@ The intended data flow is:
 
 In other words:
 
-- `00_prepare_raw_data.R` documents how the public-facing raw inputs were created from private source files.
+- `00_prepare_raw_data.R` documents how the public-facing raw inputs (csv) were created from private source files.
 - The remaining cleaning scripts convert those anonymized raw inputs into the cleaned datasets used in the paper.
 - The analysis scripts produce the figures and tables used in the manuscript and supplement.
+
+Note that the public-facing raw inputs from `00_prepare_raw_data.R` are all csv. The folder includes further cleaned datasets in non-csv formats by courtesy, all of which can be recovered by running the code on the csv raw datasets.
 
 ## Why `00_prepare_raw_data.R` exists
 

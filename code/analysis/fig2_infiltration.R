@@ -43,6 +43,10 @@ pm <-
          house_size = factor(house_size, levels = c("Small", "Big")),
          cooking = replace_na(cooking, 0))
 
+# restrict to hh with at positive indoor measurement
+id_unique = unique(pm$respondent_id[!is.na(pm$pm25_indoor)])
+pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
+survey <- survey %>% dplyr::filter(respondent_id %in% id_unique)
 
 # ==================================================
 # panel 2a. main infiltration graph
@@ -198,7 +202,8 @@ regs_het <-
 whatsapp_open <-
   read_csv(file.path(ddir, "raw_data/whatsapp_survey.csv")) %>%
   mutate(open_room = open_window == "Ya" | open_door == "Ya") %>%
-  dplyr::select(respondent_id, open_room, date_hour)
+  dplyr::select(respondent_id, open_room, date_hour) %>%
+  dplyr::filter(respondent_id %in% id_unique)
 
 # combine whatsapp data with endline survey data
 endline_open <-
@@ -346,3 +351,6 @@ p_top <- (p_inf  + p_het) + plot_layout(widths = c(2, 3))
 
 ggsave(file.path(gdir, "output/figures/fig2_infiltation.png"), width = 15, height= 10, bg = "transparent", units = "cm",
        dpi = 300)
+
+ggsave(file.path(gdir, "output/figures/fig2_infiltation.tiff"), width = 15, height= 10, bg = "transparent", units = "cm",
+       dpi = 300, compression="lzw")

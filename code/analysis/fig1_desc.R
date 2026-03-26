@@ -8,11 +8,16 @@ pm <-
   read_rds(file.path(ddir, "df_reg.rds")) %>%
   mutate(pm25_indoor = if_else(date <= ymd(20240908) & date >= ymd(20240826), NA_real_, pm25_indoor))
 
+# restrict to hh with at positive indoor measurement
+id_unique = unique(pm$respondent_id[!is.na(pm$pm25_indoor)])
+pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
+
 
 # read in survey data
 survey <- 
   file.path(ddir, "df_survey.RDS") %>%
   read_rds() %>%
+  dplyr::filter(respondent_id %in% id_unique) %>%
   mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline, 
          day_of_week = lubridate::wday(starttime_baseline, label = TRUE)) 
@@ -38,7 +43,8 @@ jakarta_shp <-
 data_locations <- 
   bind_rows(mutate(filter(sensor_locations, n3 == 1), type = "Outdoor Sensor"), 
             mutate(hh_locations, type = "Indoor HH Monitor")) %>%
-  mutate(type = factor(type, levels = c("Outdoor Sensor", "Indoor HH Monitor")))
+  mutate(type = factor(type, levels = c("Outdoor Sensor", "Indoor HH Monitor"))) %>%
+  dplyr::filter(type == "Outdoor Sensor" | respondent_id %in% id_unique)
 
 # get a nice background for the maps - need to register stadia API
 register_stadiamaps("44c45f7e-fc84-46ec-9f3e-60444545e954", write = FALSE)
@@ -216,3 +222,5 @@ p_top / p_2weeks + plot_annotation(tag_levels = "a")
 
 ggsave(file.path(gdir, "output/figures/fig1_desc.png"), 
        width =16, height= 11, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/fig1_desc.tiff"), 
+       width =16, height= 11, bg = "transparent", units = "cm", dpi = 300, compression="lzw")

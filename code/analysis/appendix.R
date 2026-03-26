@@ -10,6 +10,10 @@ pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
                 dist_secondary = dist_secondary / 1000,
                 dist_tertiary = dist_tertiary / 1000)
 
+# restrict to hh with at positive indoor measurement
+id_unique = unique(pm$respondent_id[!is.na(pm$pm25_indoor)])
+pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
+
 # HH-level PM averages
 pm_hh <-
   pm %>%
@@ -29,6 +33,7 @@ rm(pm_dt)
 # read in survey data and merge PM averages
 survey <-
   read_rds(file.path(ddir, "df_survey.rds")) %>%
+  dplyr::filter(respondent_id %in% id_unique) %>%
   left_join(pm_hh, by = "respondent_id") %>%
   dplyr::mutate(date_hour_baseline = floor_date(as.POSIXct(starttime_baseline), "hour")) %>%
   left_join(pm_outdoor24, by = c("respondent_id", "date_hour_baseline" = "date_hour")) %>%
@@ -200,36 +205,82 @@ table_out %>%
 # =========================================================================
 # no evidence of selection in outdoor sensor locations
 # =========================================================================
-hh_pm_indoor <-
-  pm %>%
+
+# Variables to use on the RHS
+rhs_vars <- c(
+  "pm25_indoor",
+  "pm25_outdoor24_baseline",
+  "income_usd",
+  "housing_room_number",
+  "housing_ac",
+  "hoh_employed",
+  "hoh_school_secondary",
+  "hoh_school_tertiary"
+)
+
+# Build household-level indoor PM
+hh_pm_indoor <- pm %>%
   dplyr::group_by(respondent_id, hour) %>%
-  dplyr::summarise(pm_indoor = mean(pm25_indoor, na.rm = TRUE)) %>%
+  dplyr::summarise(pm_indoor = mean(pm25_indoor, na.rm = TRUE), .groups = "drop") %>%
   dplyr::group_by(respondent_id) %>%
-  dplyr::summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE))
+  dplyr::summarise(pm25_indoor = mean(pm_indoor, na.rm = TRUE), .groups = "drop")
 
-hh_mindist <-
-  survey %>%
+# Merge and create missing indicators + sentinel replacement
+hh_mindist <- survey %>%
   left_join(hh_pm_indoor, by = "respondent_id") %>%
-  # fill in missing pm25_indoor with average
-  dplyr::mutate(pm25_indoor = if_else(is.na(pm25_indoor), mean(hh_pm_indoor$pm25_indoor, na.rm = TRUE), pm25_indoor),
-        housing_room_number = if_else(is.na(housing_room_number), mean(housing_room_number, na.rm = TRUE), housing_room_number))
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(rhs_vars),
+      ~ as.numeric(.x)
+    )
+  ) %>%
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(rhs_vars),
+      ~ as.integer(is.na(.x)),
+      .names = "{.col}_mis"
+    )
+  ) %>%
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(rhs_vars),
+      ~ dplyr::if_else(is.na(.x), -99, .x)
+    )
+  )
 
-xvars <- "pm25_indoor + pm25_outdoor24_baseline +income_usd  + housing_room_number + housing_ac +
-        hoh_employed + hoh_school_secondary + hoh_school_tertiary"
+# Expanded RHS: original vars + missing dummies
+rhs_vars_aug <- c(rhs_vars, paste0(rhs_vars, "_mis"))
 
-feols(as.formula(paste("sensor_mindist ~", xvars)), data = hh_mindist)  %>%
-  etable(dict = c(pm25_indoor = "Indoor PM2.5",
-                  pm25_outdoor24_baseline = "Outdoor PM2.5",
-                  income_usd = "Income (USD)",
-                  housing_room_number = "Housing Size",
-                  housing_ac = "AC",
-                  hoh_employed = "HOH Employed",
-                  hoh_school_secondaryTRUE = "HOH Attended Secondary School",
-                  hoh_school_tertiaryTRUE = "HOH Attended Tertiary School",
-                  sensor_mindist = "Distance to Outdoor Sensor (meters)"),
-         drop = "Constant", fitstat = c("my", "n"),
-         digits = "r2", replace = TRUE,
-         tex = TRUE, file = file.path(gdir, "output/tables/sensor_selection.tex"))
+# Formula
+fml <- as.formula(
+  paste("sensor_mindist ~", paste(rhs_vars_aug, collapse = " + "))
+)
+
+# Regression
+mod <- feols(fml, data = hh_mindist)
+
+# Table: hide missing-dummy coefficients
+etable(
+  mod,
+  dict = c(
+    pm25_indoor = "Indoor PM2.5",
+    pm25_outdoor24_baseline = "Outdoor PM2.5",
+    income_usd = "Income (USD)",
+    housing_room_number = "Housing Size",
+    housing_ac = "AC",
+    hoh_employed = "HOH Employed",
+    hoh_school_secondary = "HOH Attended Secondary School",
+    hoh_school_tertiary = "HOH Attended Tertiary School",
+    sensor_mindist = "Distance to Outdoor Sensor (meters)"
+  ),
+  drop = "_mis$|Constant",
+  fitstat = c("my", "n"),
+  digits = "r2",
+  replace = TRUE,
+  tex = TRUE,
+  file = file.path(gdir, "output/tables/sensor_selection.tex")
+)
+
 strip_etable_notes(file.path(gdir, "output/tables/sensor_selection.tex"))
 
 txt <- readLines(file.path(gdir, "output/tables/sensor_selection.tex"))
@@ -312,6 +363,9 @@ p_income <-
 
 ggsave(file.path(gdir, "output/figures/pm_income_robustness.png"),
        width = 14, height= 6, bg = "transparent", units = "cm", dpi = 300)
+
+ggsave(file.path(gdir, "output/figures/pm_income_robustness.tiff"),
+       width = 14, height= 6, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 # ==================================================
 # infiltration rate - lags
 # ==================================================
@@ -367,6 +421,7 @@ p_lags <-
   geom_text(aes(x = 8, y = .5, label = paste0("Inf. Rate = ", sum_beta)), size =2) ; p_lags
 
 ggsave(file.path(gdir, "output/figures/inf_lags.png"), width = 13, height= 6, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/inf_lags.tiff"), width = 13, height= 6, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 
 
 # ===================================================================
@@ -422,7 +477,8 @@ pm %>%
   xlab("Distance (km)")
 ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.png"),
     width = 15, height= 10, bg = "transparent", units = "cm", dpi = 300)
-
+ggsave(file.path(gdir, "output/figures/distance_to_road_ecdf.tiff"),
+       width = 15, height= 10, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Spike decomposition (moved from fig3_source_decomposition)
@@ -620,7 +676,8 @@ p_spike_coef + p_spike +
   plot_annotation(tag_levels = "a", tag_suffix = ".")
 ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.png"),
     width = 14, height = 8, bg = "transparent", units = "cm", dpi = 300)
-
+ggsave(file.path(gdir, "output/figures/fig_appendix_spike_sources.tiff"),
+       width = 14, height = 8, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Missing data diagnostics
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -649,7 +706,8 @@ p_missing_cdf <-
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.png"),
        width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
-
+ggsave(file.path(gdir, "output/figures/fig_appendix_missing_data.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Robustness: infiltration under alternative weighting schemes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -705,6 +763,8 @@ p_weight_robust <-
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_weight.png"),
        width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_weight.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Robustness: infiltration by distance to outdoor sensor
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -743,7 +803,8 @@ p_dist_robust <-
 
 ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.png"),
        width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300)
-
+ggsave(file.path(gdir, "output/figures/fig_appendix_inf_by_distance.tiff"),
+       width = 8, height = 6, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # BoE Envelope Tightening
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -908,7 +969,7 @@ lines <- c(
   "  &",
   "  \\multicolumn{2}{c}{Weatherization ($a \\times 0.8$)}",
   "  &",
-  "  \\multicolumn{2}{c}{Ventilation ($P \\times 0.5$)}",
+  "  \\multicolumn{2}{c}{Reduced Particle Penetration ($P \\times 0.5$)}",
   "  & \\\\",
   "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
   "  & Central",

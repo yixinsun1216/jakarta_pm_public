@@ -14,7 +14,8 @@ pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
          cooking = replace_na(cooking, 0),
          trash_burning_1week_baseline = as.factor(ifelse(as.character(trash_burning_1week_baseline) == "", "Missing", as.character(trash_burning_1week_baseline))))
 
-survey <- read_rds(file.path(ddir, "df_survey.rds"))
+survey <- read_rds(file.path(ddir, "df_survey.rds")) %>%
+  dplyr::filter(respondent_id %in% unique(pm$respondent_id[!is.na(pm$pm25_indoor)]))
 
 # helper to store results
 stats <- list()
@@ -22,7 +23,7 @@ stats <- list()
 # =========================================================================
 # 1. Sample descriptors
 # =========================================================================
-stats$n_households <- length(unique(pm$respondent_id))
+stats$n_households <- length(unique(pm$respondent_id[!is.na(pm$pm25_indoor)]))
 # tex: "308 urban households" (line 87), "300 homes" (abstract)
 
 stats$n_monitor_hours <- pm %>% filter(!is.na(pm25_indoor)) %>% nrow()
@@ -35,7 +36,7 @@ stats$n_outdoor_sensors <- fread(file.path(ddir, "raw_data/sensor_locations.csv"
 stats$pct_female <- round(mean(survey$resp_gender == "Female", na.rm = TRUE) * 100, 0)
 # tex: "90% of whom were women" (line 114)
 
-stats$pct_lpg <- round(mean(survey$hh_cookingfuel == "LPG", na.rm = TRUE) * 100, 0)
+stats$pct_lpg <- round(mean(survey$hh_cookingfuel %in% c("LPG", "Gas/LPG"), na.rm = TRUE) * 100, 0)
 # tex: "98% of households have adopted clean cooking fuels" (line 54)
 
 stats$mean_hours_per_hh <- pm %>%
@@ -44,7 +45,7 @@ stats$mean_hours_per_hh <- pm %>%
   dplyr::pull(n) %>% mean() %>% round(0)
 # tex: "Data coverage averaged 1,138 hours per household" (line 263)
 
-stats$attrition_pct <- round((1 - 285/308) * 100, 0)
+stats$attrition_pct <- round((1 - 283/308) * 100, 0)
 # tex: "attrition was only 6%" -- note: 285 installed, so 308-285=23 didn't install;
 # but attrition = those who dropped AFTER install. This is from the survey design, not data.
 
@@ -448,3 +449,4 @@ for(i in 1:nrow(compare)){
 }
 
 cat("\n\nDone. Stats object saved.\n")
+

@@ -12,6 +12,10 @@ pm <-
          cooking = replace_na(cooking, 0),
          trash = ifelse(trash_burning_1week_baseline == "", NA, trash))
 
+# restrict to hh with at positive indoor measurement (283 out of 308)
+id_unique = unique(pm$respondent_id[!is.na(pm$pm25_indoor)])
+pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
+
 # read in survey data
 survey <-
   file.path(ddir, "df_survey.rds") %>%
@@ -22,7 +26,8 @@ survey <-
          trash = trash_burning_1week_baseline != "Never",
          trash = ifelse(trash_burning_1week_baseline == "", NA, trash),
          open_room = close_door_1hour == 1 | close_window_1hour == 1,
-         date_hour = floor_date(starttime, "hour"))
+         date_hour = floor_date(starttime, "hour")) %>%
+  dplyr::filter(respondent_id %in% id_unique)
 
 
 # =========================================================================
@@ -400,3 +405,6 @@ p_income_inf <-
 
 ggsave(file.path(gdir, "output/figures/fig4_pm_income.png"),
        width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300)
+
+ggsave(file.path(gdir, "output/figures/fig4_pm_income.tiff"),
+       width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300, compression="lzw")
