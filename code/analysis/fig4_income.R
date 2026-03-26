@@ -62,13 +62,13 @@ p_char_income <-
   }) %>%
   mutate(var = factor(var, levels = c("Pr(Has AC)", "Pr(Window/Door Open)", "HH Number of Rooms"))) %>%
   ggplot(aes(x = income, y = estimate)) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#1b9e77", width = 0, size = .1) +
-  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#1b9e77", width = 0, alpha = .4, size = .1) +
-  geom_point(size = .5, color = "#1b9e77")+
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#A6761D", width = 0, size = .1) +
+  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#A6761D", width = 0, alpha = .4, size = .1) +
+  geom_point(size = .5, color = "#A6761D")+
   theme_classic() +
   expand_limits(y = 0) +
   facet_wrap(~var, scales = "free_y", nrow = 1) +
-  geom_text(aes(x = 2, y = -.1, label = fstat), size = 2.2, color = "#1b9e77") +
+  geom_text(aes(x = 2, y = -.1, label = fstat), size = 2.2, color = "#A6761D") +
   theme(title = element_text(face = "bold",size = 6),
         axis.text =element_text(size = 6),
         axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
@@ -105,16 +105,20 @@ tidy_smoke <-
          fstat = paste0("Bin 1 = Bin 4: ", round(linearHypothesis(regs_indoor[[3]], c("income_quartIncome Bin 1 = income_quartIncome Bin 4"))$`Pr(>Chisq)`[2], digits = 3)))
 
 p_hyperlocal_income <-
-  list(tidy_trash, tidy_smoke) %>%
-  bind_rows() %>%
+  list(
+    tidy_trash %>% mutate(source = "Trash"),
+    tidy_smoke %>% mutate(source = "Smoking")
+  ) %>%
+  bind_rows() %>%  
   mutate(title = fct_reorder(factor(title), order)) %>%
-  ggplot(aes(x = income, y = estimate)) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#d95f02", width = 0, size = .1) +
-  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#d95f02", width = 0, alpha = .4, size = .1) +
-  geom_point(size = .5, color = "#d95f02")+
+  ggplot(aes(x = income, y = estimate, color = source, group = source)) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0, size = .1) +
+  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .1) +
+  geom_point(size = .5)+
   theme_classic() +
-  geom_text(aes(x = 2.5, y = 0, label = fstat), size = 2.2, color = "#d95f02") +
+  geom_text(aes(x = 2.5, y = 0, label = fstat), size = 2.2) +
   facet_wrap(~title, labeller = label_parsed, scales = "free_y") +
+  scale_color_manual(values=c("#7570B3", "#66A61E")) + 
   theme(title = element_text(face = "bold",size = 6),
         axis.text =element_text(size = 6),
         axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
@@ -128,6 +132,95 @@ p_hyperlocal_income <-
         panel.background = element_rect(fill = "transparent", colour = NA),
         plot.background = element_rect(fill = "transparent", colour = NA),
         legend.position = "none") ; p_hyperlocal_income
+
+  
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Pane a: income indoor vs outdoor
+# Single regression with income_quart interacted with all source variables
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tidy_up <- function(r){
+  tidy(r, conf.int = TRUE) %>%
+    dplyr::select(term, conf.low95 = conf.low, conf.high95 = conf.high) %>%
+    left_join((tidy(r, conf.int = TRUE, conf.level = .9))) %>%
+    mutate(type = if_else(str_detect(all.vars(r$call)[1], "outdoor"),
+                          "Ambient Outdoor", "Indoor"))
+}
+pm_hh_hour <-
+  pm %>%
+  dplyr::group_by(respondent_id, hour, income_quart) %>%
+  dplyr::summarise(pm25_indoor = mean(pm25_indoor, na.rm = TRUE),
+                   pm25_outdoor = mean(pm25_outdoor3, na.rm = TRUE))
+
+r_outdoor1 <- feols(pm25_outdoor3 ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour)
+r_indoor1 <- feols(pm25_indoor ~ income_quart + 0, data = pm, cluster = ~respondent_id + date_hour)
+
+income_mean <-
+  list(r_outdoor1, r_indoor1) %>%
+  map2_df(c(rep("HH-Hour-Day", 2)),
+          ~mutate(tidy_up(.x), model = !!.y)) %>%
+  mutate(term = str_replace(term, "income_quart", ""),
+         term = if_else(term == "Income Bin 1", "Income Bin 1 (lowest)", term),
+         term = factor(term, levels = c("Income Bin 4", "Income Bin 3",
+                                        "Income Bin 2", "Income Bin 1 (lowest)")))
+
+pd <- position_dodge(width = 0.55)
+
+p_income <-
+  income_mean %>%
+  mutate(
+    term = str_replace(term, "income_quart", ""),
+    term = if_else(term == "Income Bin 1 (lowest)", "Income Bin 1", term),
+    term = if_else(term == "Income Bin 2", "Bin 2", term),
+    term = if_else(term == "Income Bin 3", "Bin 3", term),
+    term = if_else(term == "Income Bin 4", "Bin 4", term),
+    term = factor(term, levels = c(
+      "Income Bin 1",
+      "Bin 2",
+      "Bin 3",
+      "Bin 4"
+    ))
+  ) %>%
+  ggplot(aes(x = term, y = estimate, color = type, group = type)) +
+  geom_point(size = 1, position = pd) +
+  geom_errorbar(
+    aes(ymin = conf.low95, ymax = conf.high95),
+    width = 0,
+    alpha = 0.33,
+    position = pd
+  ) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    width = 0,
+    position = pd
+  ) +
+  theme_classic() +
+  scale_color_manual(values = c("#D95F02", "#1B9E77")) +
+  coord_cartesian(ylim = c(0, 90)) +
+  ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
+  xlab("Income quartile") +
+  
+  theme(
+    title = element_text(face = "bold", size = 6),
+    axis.text = element_text(size = 6),
+    axis.line = element_line(linewidth = 0.1),
+    axis.ticks = element_line(linewidth = 0.1),
+    axis.title = element_text(size = 6),
+    axis.title.x = element_text(size = 0),
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    
+    legend.position = c(0.5, 0.02),   # 👈 key line
+    legend.justification = c(0.5, 0), # anchor bottom-center
+    legend.direction = "horizontal",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 6),
+    legend.background = element_rect(fill = "transparent"),
+    legend.key = element_rect(fill = "transparent"),
+    legend.key.size = unit(0.4, "cm")
+  ) ; p_income
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,7 +315,8 @@ p_decomp_income <-
             aes(y = y_mid, label = term_label),
             size = 1.3, color = "white", lineheight = 0.85) +
   geom_hline(yintercept = 0, linewidth = .2) +
-  scale_fill_brewer(palette = "Dark2") +
+  # scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values=c("#7570B3", "#66A61E", "#D95F02")) +
   ylab(expression(PM[2.5] ~ (mu * g/m^3))) +
   xlab("Income quartile") +
   facet_wrap(~"Indoor PM2.5") +
@@ -261,13 +355,13 @@ p_income_inf <-
   mutate(income = if_else(type == "Bin 1", "Income Bin 1\n(lowest)", type),
          income = factor(income, levels = c("Income Bin 1\n(lowest)", "Bin 2", "Bin 3", "Bin 4"))) %>%
   ggplot(aes(x = income, y = estimate)) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#7570b3", width = 0, size = .1) +
-  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#7570b3", width = 0, alpha = .4, size = .1) +
-  geom_point(size = .5, color = "#7570b3") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color = "#D95F02", width = 0, size = .1) +
+  geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), color = "#D95F02", width = 0, alpha = .4, size = .1) +
+  geom_point(size = .5, color = "#D95F02") +
   theme_classic() +
   expand_limits(y = 0) +
   facet_wrap(~"Infiltration Factor") +
-  geom_text(aes(x = 3.5, y = -.05, label = fstat), size = 2.2, color = "#7570b3") +
+  geom_text(aes(x = 3.5, y = -.05, label = fstat), size = 2.2, color = "#D95F02") +
   ylab("Infiltration Factor") +
   theme(title = element_text(face = "bold", size = 6),
         axis.text = element_text(size = 6),
@@ -281,14 +375,14 @@ p_income_inf <-
         panel.background = element_rect(fill = "transparent", colour = NA),
         plot.background = element_rect(fill = "transparent", colour = NA),
         legend.position = "none") ; p_income_inf
-
+  
 
 # =========================================================================
 # Assemble figure 4:
 # a = p_decomp_income, b = p_hyperlocal_income,
 # c = p_income_inf, d = p_char_income
 # =========================================================================
-(p_decomp_income + p_hyperlocal_income + plot_layout(widths = c(2, 2))) /
+(p_income + p_decomp_income + p_hyperlocal_income + plot_layout(widths = c(1.5, 2, 2))) /
   ((p_income_inf + p_char_income) + plot_layout(widths = c(1, 2))) +
   plot_layout(heights = c(1, 0.75)) +
   plot_annotation(tag_levels = "a", tag_suffix = ".") &
