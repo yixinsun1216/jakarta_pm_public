@@ -9,14 +9,6 @@ pacman::p_load(tidyverse, lubridate, data.table, sf, readxl)
 
 rm(list = ls())
 
-if(Sys.getenv("USER") == "yixin.sun"){
-  ddir_private <- file.path("/Users/yixin.sun/Documents/Educational/pollution_experience_data")
-  gdir <- file.path("/Users/yixin.sun/Documents/Educational/jakarta_pm_public")
-} else if(Sys.getenv("USER") == "yixinsun1"){
-  ddir_private <- file.path("/Users/yixinsun1/Dropbox/Research/pollution_experience/fullscale")
-  gdir <- file.path("/Users/yixinsun1/Documents/Github/jakarta_pm_public")
-}
-
 raw_dir <- file.path(gdir, "data/raw_data")
 dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 
