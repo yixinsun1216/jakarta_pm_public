@@ -109,3 +109,62 @@ That script will:
 2. Build cleaned datasets in `data/`.
 3. Generate figures and tables in `output/`.
 
+## R Session Info
+
+The package versions below were captured by running `sessionInfo()` after loading the packages listed in [code/run_code.r](/Users/yixin.sun/Documents/Educational/jakarta_pm_public/code/run_code.r).
+
+```r
+R version 4.5.2 (2025-10-31)
+Platform: aarch64-apple-darwin20
+Running under: macOS Sequoia 15.6.1
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+locale:
+[1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8
+
+time zone: Europe/London
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] data.table_1.18.0 Hmisc_5.2-3       latex2exp_0.9.8   relaimpo_2.2-7   
+ [5] mitools_2.4       survey_4.4-8      survival_3.8-3    Matrix_1.7-4     
+ [9] boot_1.3-32       MASS_7.3-65       car_3.1-3         carData_3.0-5    
+[13] kableExtra_1.4.0  knitr_1.50        broom_1.0.8       fixest_0.13.3    
+[17] scales_1.4.0      ggmap_4.0.2       ggthemes_5.2.0    patchwork_1.3.1  
+[21] sf_1.0-21         lubridate_1.9.4   forcats_1.0.0     stringr_1.5.1    
+[25] dplyr_1.1.4       purrr_1.0.4       readr_2.1.5       tidyr_1.3.1      
+[29] tibble_3.3.0      ggplot2_3.5.2     tidyverse_2.0.0   readxl_1.4.5     
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_1.2.1    viridisLite_0.4.2   farver_2.1.2       
+ [4] bitops_1.0-9        fastmap_1.2.0       pacman_0.5.1       
+ [7] rpart_4.1.24        digest_0.6.37       timechange_0.3.0   
+[10] lifecycle_1.0.4     cluster_2.1.8.1     dreamerr_1.5.0     
+[13] magrittr_2.0.3      compiler_4.5.2      rlang_1.1.6        
+[16] tools_4.5.2         htmlwidgets_1.6.4   classInt_0.4-11    
+[19] plyr_1.8.9          xml2_1.3.8          RColorBrewer_1.1-3 
+[22] abind_1.4-8         KernSmooth_2.23-26  foreign_0.8-90     
+[25] withr_3.0.2         numDeriv_2016.8-1.1 nnet_7.3-20        
+[28] colorspace_2.1-1    e1071_1.7-16        cli_3.6.5          
+[31] rmarkdown_2.29      generics_0.1.4      rstudioapi_0.17.1  
+[34] httr_1.4.7          tzdb_0.5.0          DBI_1.2.3          
+[37] proxy_0.4-27        splines_4.5.2       cellranger_1.1.0   
+[40] base64enc_0.1-3     stringmagic_1.2.0   vctrs_0.6.5        
+[43] sandwich_3.1-1      hms_1.1.3           htmlTable_2.4.3    
+[46] Formula_1.2-5       systemfonts_1.3.1   jpeg_0.1-11        
+[49] units_0.8-7         glue_1.8.0          stringi_1.8.7      
+[52] gtable_0.3.6        pillar_1.10.2       htmltools_0.5.8.1  
+[55] R6_2.6.1            textshaping_1.0.1   evaluate_1.0.4     
+[58] lattice_0.22-7      png_0.1-8           backports_1.5.0    
+[61] corpcor_1.6.10      class_7.3-23        Rcpp_1.1.1         
+[64] checkmate_2.3.2     gridExtra_2.3       svglite_2.2.1      
+[67] nlme_3.1-168        xfun_0.52           zoo_1.8-14         
+[70] pkgconfig_2.0.3    
+```
