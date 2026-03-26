@@ -216,7 +216,3 @@ p_top / p_2weeks + plot_annotation(tag_levels = "a")
 
 ggsave(file.path(gdir, "output/figures/fig1_desc.png"), 
        width =16, height= 11, bg = "transparent", units = "cm", dpi = 300)
-
-ggsave(file.path(gdir, "output/figures/fig1_desc.tiff"), 
-       width =16, height= 11, bg = "transparent", units = "cm", dpi = 300,
-       compression = "lzw")

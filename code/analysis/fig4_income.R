@@ -121,7 +121,7 @@ p_hyperlocal_income <-
   scale_color_manual(values=c("#7570B3", "#66A61E")) + 
   theme(title = element_text(face = "bold",size = 6),
         axis.text =element_text(size = 6),
-        axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
+        axis.text.x = element_text(size = 5, angle = 45, hjust = 1),
         axis.line = element_line(size = .1),
         axis.ticks = element_line(size = .1),
         axis.title = element_blank(),
@@ -202,7 +202,7 @@ p_income <-
   theme(
     title = element_text(face = "bold", size = 6),
     axis.text = element_text(size = 6),
-    axis.text.x = element_text(size = 6, angle = 45, hjust = 1),
+    axis.text.x = element_text(size = 5, angle = 45, hjust = 1),
     axis.line = element_line(linewidth = 0.1),
     axis.ticks = element_line(linewidth = 0.1),
     axis.title = element_text(size = 6),
@@ -400,6 +400,3 @@ p_income_inf <-
 
 ggsave(file.path(gdir, "output/figures/fig4_pm_income.png"),
        width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300)
-
-ggsave(file.path(gdir, "output/figures/fig4_pm_income.tiff"),
-       width = 16, height= 12, bg = "transparent", units = "cm", dpi = 300, compression = "lzw")

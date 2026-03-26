@@ -262,8 +262,3 @@ p_sources_coef + p_contributions +
   plot_annotation(tag_levels = "a", tag_suffix = ".")
 ggsave(file.path(gdir, "output/figures/fig3_sources.png"),
     width = 14, height= 8, bg = "transparent", units = "cm", dpi = 300)
-
-ggsave(file.path(gdir, "output/figures/fig3_sources.tiff"),
-       width = 14, height= 8, bg = "transparent", units = "cm", dpi = 300,
-       compression = "lzw")
-

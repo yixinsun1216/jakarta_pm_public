@@ -346,6 +346,3 @@ p_top <- (p_inf  + p_het) + plot_layout(widths = c(2, 3))
 
 ggsave(file.path(gdir, "output/figures/fig2_infiltation.png"), width = 15, height= 10, bg = "transparent", units = "cm",
        dpi = 300)
-
-ggsave(file.path(gdir, "output/figures/fig2_infiltation.tiff"), width = 15, height= 10, bg = "transparent", units = "cm",
-       dpi = 300, compression = "lzw")
