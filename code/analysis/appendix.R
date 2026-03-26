@@ -840,9 +840,9 @@ data.table::setnames(data_summ, old=c("pm25_mean", "pm25outdoor_mean"), new=c("C
 
 data_summ$k = 0.5
 data_summ$P = 1.0
-data_summ$k_min = 0.3
-data_summ$k_max = 5.0
-data_summ$P_min = 0.7
+data_summ$k_min = 0.2
+data_summ$k_max = 1.5
+data_summ$P_min = 0.8
 data_summ$P_max = 1.0
 
 data_summ = data_summ %>%
@@ -866,12 +866,12 @@ data_summ = data_summ %>%
     a_weather20_Pmin_kmax = a_Pmin_kmax * 0.8,
     a_weather20_Pmax_kmin = a_Pmax_kmin * 0.8,
     a_weather20_Pmax_kmax = a_Pmax_kmax * 0.8,
-    Cin_weather20_Pmin_kmin = (a_weather20_Pmin_kmin * P_min * Cout + S) / (a_weather20_Pmin_kmin + k_min),
-    Cin_weather20_Pmin_kmax = (a_weather20_Pmin_kmax * P_min * Cout + S) / (a_weather20_Pmin_kmax + k_max),
-    Cin_weather20_Pmax_kmin = (a_weather20_Pmax_kmin * P_max * Cout + S) / (a_weather20_Pmax_kmin + k_min),
-    Cin_weather20_Pmax_kmax = (a_weather20_Pmax_kmax * P_max * Cout + S) / (a_weather20_Pmax_kmax + k_max),
+    Cin_weather20_Pmin_kmin = (a_weather20_Pmin_kmin * P_min * Cout + S_Pmin_kmin) / (a_weather20_Pmin_kmin + k_min),
+    Cin_weather20_Pmin_kmax = (a_weather20_Pmin_kmax * P_min * Cout + S_Pmin_kmax) / (a_weather20_Pmin_kmax + k_max),
+    Cin_weather20_Pmax_kmin = (a_weather20_Pmax_kmin * P_max * Cout + S_Pmax_kmin) / (a_weather20_Pmax_kmin + k_min),
+    Cin_weather20_Pmax_kmax = (a_weather20_Pmax_kmax * P_max * Cout + S_Pmax_kmax) / (a_weather20_Pmax_kmax + k_max),
     Cin_diff_weather20_Pmin_kmin = Cin_weather20_Pmin_kmin - Cin,
-    Cin_diff_weather20_Pmin_kmax = Cin_weather20_Pmin_kmin - Cin,
+    Cin_diff_weather20_Pmin_kmax = Cin_weather20_Pmin_kmax - Cin,
     Cin_diff_weather20_Pmax_kmin = Cin_weather20_Pmax_kmin - Cin,
     Cin_diff_weather20_Pmax_kmax = Cin_weather20_Pmax_kmax - Cin)
 
