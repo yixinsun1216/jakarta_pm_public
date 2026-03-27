@@ -250,7 +250,7 @@ p_het <-
   facet_grid(~title, scales = "free_x", space = "free_x") +
   scale_color_brewer(palette = "Dark2") +
   ylab("Infiltration Factor") +
-  geom_text(aes(x = 1, y = .02, label = fstat), size = 1.5) +
+  geom_text(aes(x = 1.3, y = .01, label = fstat), size = 1.8) +
   theme(legend.position = "none") +
   ylim(c(0, 1)) +
   annotate(# Add vertical lines between graphs
