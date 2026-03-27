@@ -1,9 +1,9 @@
 # =========================================================================
 # clean_surveys.r
-# Merge baseline, endline, and installation surveys into df_survey.RDS
+# Merge baseline, endline, and installation surveys into df_survey.csv
 # Input: data/raw_data/baseline_adult.csv, endline_adult.csv, installations.csv,
 #        hh_sensor_dist_control.csv
-# Output: data/df_survey.RDS
+# Output: data/df_survey.csv
 # =========================================================================
 
 # =========================================================================
@@ -189,4 +189,4 @@ respondent <-
 
 
 cat("Survey:", nrow(respondent), "respondents\n")
-write_rds(respondent, file.path(ddir, "df_survey.RDS"))
+fwrite(as.data.table(respondent), file.path(ddir, "df_survey.csv"))

@@ -41,7 +41,7 @@ outdoor <-
 
 stopifnot(group_by(outdoor, sensor_name, measure, date_hour) %>% filter(n() > 1) %>% nrow() == 0)
 
-write_rds(outdoor, file.path(ddir, "pm_outdoor_bysensor.rds"))
+fwrite(as.data.table(outdoor), file.path(ddir, "pm_outdoor_bysensor.csv"))
 
 
 
@@ -60,7 +60,7 @@ outdoor_location <-
 stopifnot(outdoor_location %>% group_by(name) %>% filter(n() > 1) %>% nrow() == 0)
 
 respondent <-
-  readRDS(file.path(ddir, "df_survey.RDS")) %>%
+  fread(file.path(ddir, "df_survey.csv")) %>%
   dplyr::select(respondent_id, longitude, latitude, round) %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = st_crs(4326))
 
@@ -175,4 +175,4 @@ outdoor_data <-
 
 outdoor_data %>% count(date, respondent_id) %>% count(date)
 
-write_rds(outdoor_data, file.path(ddir, "pm_outdoor.rds"))
+fwrite(as.data.table(outdoor_data), file.path(ddir, "pm_outdoor.csv"))

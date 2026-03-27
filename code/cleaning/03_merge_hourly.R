@@ -2,13 +2,19 @@
 # 06_merge_hourly.R
 # Merge indoor + outdoor PM at hourly level with survey and auxiliary data
 # Input: data/raw_data/pm_indoor.csv (already hourly),
-#        data/df_outdoor_10min.rds, data/df_survey.RDS,
+#        data/pm_outdoor.csv, data/df_survey.csv,
 #        data/raw_data/survey_control_wroads.csv,
 #        data/raw_data/timeuse_baseline.csv, data/raw_data/baseline_adult.csv
-# Output: data/df_reg.rds, data/hh_locations_jittered.RDS
+# Output: data/df_reg.csv, data/hh_locations_jittered/hh_locations_jittered.shp
 # =========================================================================
 # read survey data
-respondent <- read_rds(file.path(ddir, "df_survey.RDS"))
+respondent <-
+  fread(file.path(ddir, "df_survey.csv")) %>%
+  mutate(
+    respondent_id = as.integer(respondent_id),
+    starttime_baseline = as.POSIXct(starttime_baseline, tz = "UTC"),
+    starttime = as.POSIXct(starttime, tz = "UTC")
+  )
 
 # =========================================================================
 # Hourly pm data
@@ -21,7 +27,13 @@ pm_indoor_hourly <-
   dplyr::select(respondent_id, date_hour, date, hour,
                 pm25_indoor = pm25_purifier)
 
-pm_outdoor_hourly <-  read_rds(file.path(ddir, "pm_outdoor.rds"))
+pm_outdoor_hourly <-
+  fread(file.path(ddir, "pm_outdoor.csv")) %>%
+  mutate(
+    respondent_id = as.integer(respondent_id),
+    date_hour = as.POSIXct(date_hour, tz = "UTC"),
+    date = as.Date(date)
+  )
 
 # =========================================================================
 # merge indoor + outdoor, filter to Fan treatment
@@ -116,7 +128,7 @@ pm <-
 cat("Hourly PM panel:", nrow(pm), "rows,",
     length(unique(pm$respondent_id)), "respondents\n")
 
-write_rds(pm, file.path(ddir, "df_reg.rds"))
+fwrite(as.data.table(pm), file.path(ddir, "df_reg.csv"))
 
 
 # =========================================================================
@@ -125,10 +137,17 @@ write_rds(pm, file.path(ddir, "df_reg.rds"))
 hh_locations <-
   fread(file.path(raw_dir, "baseline_adult.csv")) %>%
   filter(treatment_status == "Fan") %>%
-  dplyr::select(respondent_id, longitude, latitude) %>%
+  dplyr::select(resp_id = respondent_id, longitude, latitude) %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = st_crs(4326)) %>%
   st_jitter(factor = .01)
 
-write_rds(hh_locations, file.path(ddir, "hh_locations_jittered.RDS"))
+hh_dir <- file.path(ddir, "hh_locations_jittered")
+dir.create(hh_dir, showWarnings = FALSE)
+st_write(
+  hh_locations,
+  file.path(hh_dir, "hh_locations_jittered.shp"),
+  delete_layer = TRUE,
+  quiet = TRUE
+)
 
 cat("=== Merge complete ===\n")

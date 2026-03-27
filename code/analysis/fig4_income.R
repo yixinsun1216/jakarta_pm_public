@@ -5,7 +5,7 @@ gc()
 # read in data
 # ===========================================================
 pm <-
-  read_rds(file.path(ddir, "df_reg.rds")) %>%
+  read_pm_data() %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          trash = trash_burning_1week_baseline != "Never",
          income_high = hh_income >= 4,
@@ -18,8 +18,7 @@ pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
 
 # read in survey data
 survey <-
-  file.path(ddir, "df_survey.rds") %>%
-  read_rds() %>%
+  read_survey_data() %>%
   mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline,
          day_of_week = lubridate::wday(starttime_baseline, label = TRUE),
@@ -121,6 +120,7 @@ p_hyperlocal_income <-
   geom_errorbar(aes(ymin = conf.low95, ymax = conf.high95), width = 0, alpha = .4, size = .1) +
   geom_point(size = .5)+
   theme_classic() +
+  expand_limits(y = 0) +
   geom_text(aes(x = 2.5, y = 0, label = fstat), size = 2.2) +
   facet_wrap(~title, labeller = label_parsed, scales = "free_y") +
   scale_color_manual(values=c("#7570B3", "#66A61E")) + 
@@ -294,6 +294,11 @@ r_indoor <-
   feols(pm25_indoor ~ income_quart + 0, data = pm,
         cluster = ~respondent_id+date_hour) %>%
   tidy(conf.int = TRUE) %>%
+  dplyr::select(term, estimate, conf.low95 = conf.low, conf.high95 = conf.high) %>%
+  left_join(tidy(feols(pm25_indoor ~ income_quart + 0, data = pm,
+                       cluster = ~respondent_id+date_hour), conf.int = TRUE, conf.level = .9) %>%
+              dplyr::select(term, conf.low, conf.high),
+            by = "term") %>%
   dplyr::rename(income_quart = term) %>%
   mutate(income_quart = str_remove(income_quart, "income_quart"))
 
@@ -320,11 +325,22 @@ decomp_labels <- decomp_all %>%
   mutate(y_mid = c(50, 33, 12),
          term_label = as.character(term))
 
+decomp_totals <- r_indoor %>%
+  mutate(income_quart = if_else(income_quart == "Income Bin 1", "Income Bin 1 (lowest)", income_quart),
+         income_quart = str_wrap(income_quart, width = 5),
+         income_quart = factor(income_quart, levels = c("Income\nBin 1\n(lowest)", "Income\nBin 2", "Income\nBin 3", "Income\nBin 4")))
+
 
 p_decomp_income <-
   decomp_all %>%
   ggplot(aes(x = income_quart, y = contribution, fill = term)) +
   geom_col(width = .75) +
+  geom_errorbar(data = decomp_totals,
+                aes(x = income_quart, ymin = conf.low95, ymax = conf.high95),
+                inherit.aes = FALSE, width = 0, alpha = .35, size = .15, color = "gray20") +
+  geom_errorbar(data = decomp_totals,
+                aes(x = income_quart, ymin = conf.low, ymax = conf.high),
+                inherit.aes = FALSE, width = 0, size = .15, color = "gray20") +
   geom_text(data = decomp_labels,
             aes(y = y_mid, label = term_label),
             size = 1.3, color = "white", lineheight = 0.85) +

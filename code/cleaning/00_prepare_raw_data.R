@@ -3,17 +3,19 @@
 # Creates anonymized raw data in data/raw_data/ from private data sources
 # This script is for provenance documentation - external users will receive
 # the raw_data/ folder directly and do not need to run this script.
-# All outputs are CSV (except shapefiles and Stata .dta)
+# All public outputs are CSV, shapefiles, or Stata .dta.
+# Downstream cleaning scripts preserve the same CSV/shapefile convention.
 # =========================================================================
 pacman::p_load(tidyverse, lubridate, data.table, sf, readxl)
 
 rm(list = ls())
 
-raw_dir <- file.path(gdir, "data/raw_data")
-dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
 
 set.seed(42)
 
+raw_dir <- "/Users/yixin.sun/Documents/Educational/jakarta_pm_public/data/raw_data"
+# dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+ddir_private <- "/Users/yixin.sun/Documents/Educational/pollution_experience_data"
 
 # =========================================================================
 # 1. Indoor PM data (hourly, from pollution_experience pipeline)
@@ -152,4 +154,3 @@ dir.create(shp_dir, showWarnings = FALSE)
 shp_files <- list.files(file.path(ddir_private, "data/Batas Adm RW 01 Mei 2020"),
                          full.names = TRUE)
 file.copy(shp_files, shp_dir, overwrite = TRUE)
-

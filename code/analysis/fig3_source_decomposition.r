@@ -20,7 +20,7 @@ theme_set(my_theme)
 # -------------------- Read in PM data -------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 pm <-
-  read_rds(file.path(ddir, "df_reg.rds")) %>%
+  read_pm_data() %>%
   mutate(
     traffic_hours = hour(date_hour) %in% c(7, 8, 9, 16, 17, 18, 19),
     cooking_night = hour(date_hour) %in% c(17, 18, 19, 20),

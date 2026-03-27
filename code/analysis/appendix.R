@@ -3,7 +3,7 @@ rm(list=ls_extra())
 gc()
 
 # read in pm data
-pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
+pm <- read_pm_data() %>%
   dplyr::mutate(cooking = replace_na(cooking, 0),
                 dist_primary = dist_primary / 1000, # distance in km
                 dist_motorway = dist_motorway / 1000,
@@ -32,7 +32,7 @@ rm(pm_dt)
 
 # read in survey data and merge PM averages
 survey <-
-  read_rds(file.path(ddir, "df_survey.rds")) %>%
+  read_survey_data() %>%
   dplyr::filter(respondent_id %in% id_unique) %>%
   left_join(pm_hh, by = "respondent_id") %>%
   dplyr::mutate(date_hour_baseline = floor_date(as.POSIXct(starttime_baseline), "hour")) %>%
@@ -814,8 +814,8 @@ gc()
 
 # re-read survey with PM averages for BoE calculations
 survey_boe <-
-  read_rds(file.path(ddir, "df_survey.rds")) %>%
-  left_join(read_rds(file.path(ddir, "df_reg.rds")) %>%
+  read_survey_data() %>%
+  left_join(read_pm_data() %>%
               dplyr::group_by(respondent_id) %>%
               dplyr::summarise(pm25_mean = mean(pm25_indoor, na.rm = TRUE),
                         pm25outdoor_mean = mean(pm25_outdoor3, na.rm = TRUE),

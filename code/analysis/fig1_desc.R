@@ -5,7 +5,7 @@ gc()
 # read in data
 # ===========================================================
 pm <- 
-  read_rds(file.path(ddir, "df_reg.rds")) %>%
+  read_pm_data() %>%
   mutate(pm25_indoor = if_else(date <= ymd(20240908) & date >= ymd(20240826), NA_real_, pm25_indoor))
 
 # restrict to hh with at positive indoor measurement
@@ -15,8 +15,7 @@ pm <- pm %>% dplyr::filter(respondent_id %in% id_unique)
 
 # read in survey data
 survey <- 
-  file.path(ddir, "df_survey.RDS") %>%
-  read_rds() %>%
+  read_survey_data() %>%
   dplyr::filter(respondent_id %in% id_unique) %>%
   mutate(adult_timeuse_home_frac = adult_timeuse_home_baseline / adult_timeuse_total_baseline,
          child_timeuse_home_frac = child_timeuse_home_baseline / child_timeuse_total_baseline, 
@@ -31,11 +30,11 @@ survey <-
 sensor_locations <- st_read(file.path(ddir, "sensor_locations/sensor_locations.shp")) 
 
 hh_locations <- 
-  readRDS(file.path(ddir, "hh_locations_jittered.RDS")) 
+  read_hh_locations()
 
 # shapefile for Jakarta administrative boundaries
 jakarta_shp <- 
-  file.path(ddir, "Batas Adm RW 01 Mei 2020/Batas_adm_RW_010520.shp") %>%
+  file.path(raw_dir, "Batas_adm_RW/Batas_adm_RW_010520.shp") %>%
   st_read() %>%
   #group_by(WILAYAH) %>%
   dplyr::summarise(type = "Jakarta")

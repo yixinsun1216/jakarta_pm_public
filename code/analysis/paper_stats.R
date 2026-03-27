@@ -8,13 +8,13 @@ gc()
 
 pacman::p_load(tidyverse, lubridate, fixest, broom, car, data.table)
 
-pm <- read_rds(file.path(ddir, "df_reg.rds")) %>%
+pm <- read_pm_data() %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          pm25_indoor = if_else(pm25_indoor == 1, NA_real_, pm25_indoor),
          cooking = replace_na(cooking, 0),
          trash_burning_1week_baseline = as.factor(ifelse(as.character(trash_burning_1week_baseline) == "", "Missing", as.character(trash_burning_1week_baseline))))
 
-survey <- read_rds(file.path(ddir, "df_survey.rds")) %>%
+survey <- read_survey_data() %>%
   dplyr::filter(respondent_id %in% unique(pm$respondent_id[!is.na(pm$pm25_indoor)]))
 
 # helper to store results
@@ -449,4 +449,3 @@ for(i in 1:nrow(compare)){
 }
 
 cat("\n\nDone. Stats object saved.\n")
-

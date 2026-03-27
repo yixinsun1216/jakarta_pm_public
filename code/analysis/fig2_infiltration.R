@@ -25,7 +25,7 @@ theme_set(theme_inf)
 
 # read in survey data
 survey <-
-  read_rds(file.path(ddir, "df_survey.RDS"))  %>%
+  read_survey_data() %>%
   mutate(income_high = hh_income >= 4,
          house_size = case_when(housing_room_number < 5 ~ "Small",
                                 housing_room_number >= 5 ~"Big"),
@@ -33,7 +33,7 @@ survey <-
 
 # read in pm data
 pm <-
-  read_rds(file.path(ddir, "df_reg.rds"))  %>%
+  read_pm_data() %>%
   mutate(night = if_else(hour >= 19 | hour <= 6, "Night", "Day"),
          splines = Hmisc::cut2(pm25_outdoor3, cuts = c(30, 40, 50)),
          income_high = hh_income >= 4,
@@ -250,7 +250,7 @@ p_het <-
   facet_grid(~title, scales = "free_x", space = "free_x") +
   scale_color_brewer(palette = "Dark2") +
   ylab("Infiltration Factor") +
-  geom_text(aes(x = 1, y = .02, label = fstat), size = 2) +
+  geom_text(aes(x = 1, y = .02, label = fstat), size = 1.5) +
   theme(legend.position = "none") +
   ylim(c(0, 1)) +
   annotate(# Add vertical lines between graphs

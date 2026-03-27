@@ -1,0 +1,6 @@
+PWD /Users/yixin.sun/Documents/Educational/jakarta_pm_public/notes
+INPUT /usr/local/texlive/2025basic/texmf.cnf
+INPUT /usr/local/texlive/2025basic/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2025basic/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT /Users/yixin.sun/Documents/Educational/jakarta_pm_public/notes/resubmission.tex
+OUTPUT resubmission.log
